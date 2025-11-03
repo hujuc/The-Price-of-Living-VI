@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Price of Living: A Visual Journey Through Inflation</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- D3.js Library -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="nav-title">The Price of Living</h1>
+            <ul class="nav-menu">
+                <li><a href="#introduction">Introdução</a></li>
+                <li><a href="#data">Dados</a></li>
+                <li><a href="#visualizations">Visualizações</a></li>
+                <li><a href="#conclusions">Conclusões</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>The Price of Living</h1>
+            <p>Uma Jornada Visual Através da Inflação em Portugal</p>
+        </div>
+    </header>
+
+    <!-- Introduction Section -->
+    <section id="introduction" class="section">
+        <div class="container">
+            <h2>Introdução</h2>
+            <p>
+                A inflação voltou a estar no centro do debate público nos últimos anos, 
+                com impacto direto no custo de vida das famílias portuguesas. O aumento 
+                dos preços da energia, da alimentação e da habitação tem sido sentido por 
+                todos, mas afeta de forma particular os grupos mais vulneráveis.
+            </p>
+            <p>
+                O nosso objetivo é analisar de que forma a inflação em Portugal afeta 
+                diferentes dimensões do dia a dia: preços, salários, habitação e desigualdade social.
+            </p>
+            
+            <div class="questions-box">
+                <h3>Questões Principais</h3>
+                <ul>
+                    <li>Quanto aumentou a inflação em Portugal no total e em cada categoria de bens e serviços?</li>
+                    <li>Os salários acompanharam a subida de preços ou houve perda de poder de compra?</li>
+                    <li>Como Portugal se compara com a União Europeia?</li>
+                    <li>A inflação afetou a distribuição do rendimento e os 40% mais pobres?</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Data Section -->
+    <section id="data" class="section section-alt">
+        <div class="container">
+            <h2>Dados</h2>
+            <p>
+                Para a nossa análise recorremos a dados da <strong>Pordata</strong>, 
+                que compila estatísticas oficiais do INE e do Eurostat.
+            </p>
+            
+            <div class="data-sources">
+                <div class="data-card">
+                    <h3>📊 Índice de Preços no Consumidor (IPC)</h3>
+                    <p>Mostra como os preços evoluem em diferentes categorias, como alimentação ou transportes.</p>
+                </div>
+                
+                <div class="data-card">
+                    <h3>💰 Salário Mínimo Nacional</h3>
+                    <p>Permite avaliar se os rendimentos acompanharam a subida dos preços.</p>
+                </div>
+                
+                <div class="data-card">
+                    <h3>🇪🇺 Índice Harmonizado de Preços (HICP)</h3>
+                    <p>Garante comparabilidade com a média da União Europeia.</p>
+                </div>
+                
+                <div class="data-card">
+                    <h3>📈 Quota de Rendimento dos 40% Mais Pobres</h3>
+                    <p>Mostra como é distribuído o rendimento em Portugal.</p>
+                </div>
+                
+                <div class="data-card">
+                    <h3>🔢 Taxa de Inflação Total e Subjacente</h3>
+                    <p>Mede a variação média anual dos preços, distinguindo energia e alimentos não transformados.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Visualizations Section -->
+    <section id="visualizations" class="section">
+        <div class="container">
+            <h2>Visualizações</h2>
+            <p>Explore os dados de forma interativa através das visualizações abaixo.</p>
+            
+            <!-- Visualization 1: Inflation Over Time -->
+            <div class="visualization-container">
+                <h3>Evolução da Inflação em Portugal</h3>
+                <p class="viz-description">
+                    Este gráfico mostra a evolução temporal da inflação total e subjacente em Portugal.
+                </p>
+                <div id="viz-inflation-timeline" class="viz-canvas"></div>
+            </div>
+
+            <!-- Visualization 2: Prices vs Wages -->
+            <div class="visualization-container">
+                <h3>Preços vs. Salários</h3>
+                <p class="viz-description">
+                    Comparação entre a evolução dos preços e dos salários ao longo do tempo.
+                </p>
+                <div id="viz-prices-wages" class="viz-canvas"></div>
+            </div>
+
+            <!-- Visualization 3: Income Distribution -->
+            <div class="visualization-container">
+                <h3>Impacto na Distribuição de Rendimento</h3>
+                <p class="viz-description">
+                    Como a inflação afeta a quota de rendimento dos 40% mais pobres.
+                </p>
+                <div id="viz-income-distribution" class="viz-canvas"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Conclusions Section -->
+    <section id="conclusions" class="section section-alt">
+        <div class="container">
+            <h2>Conclusões</h2>
+            <p>
+                A inflação não é apenas um indicador económico abstrato, mas um fenómeno 
+                que influencia salários, rendas e desigualdades sociais em Portugal.
+            </p>
+            
+            <div class="key-findings">
+                <h3>Principais Descobertas</h3>
+                <ul>
+                    <li>A inflação afetou de forma desigual diferentes categorias de bens e serviços</li>
+                    <li>O poder de compra das famílias foi impactado pela evolução dos salários</li>
+                    <li>Comparativamente à UE, Portugal apresenta características específicas</li>
+                    <li>O impacto social da inflação é visível na distribuição de rendimento</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>
+                Desenvolvido por <strong>Ângela Ribeiro</strong> (109061) e 
+                <strong>Hugo Castro</strong> (113889)
+            </p>
+            <p>
+                Universidade de Aveiro - DETI<br>
+                Information Visualisation 2025/2026
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="src/main.js"></script>
+</body>
+</html>
