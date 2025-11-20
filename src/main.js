@@ -123,6 +123,7 @@ function setupVisualizationControls() {
     const btnTimeline = d3.select("#btn-timeline-view");
     const btnRadar = d3.select("#btn-radar-view");
     const yearSelectionContainer = d3.select("#year-selection-container");
+    const categoryFilterContainer = d3.select("#category-filter-container");
 
     let cachedData = null;
 
@@ -139,6 +140,7 @@ function setupVisualizationControls() {
         btnTimeline.classed("active", true);
         btnRadar.classed("active", false);
         yearSelectionContainer.style("display", "none");
+        categoryFilterContainer.style("display", "block");
 
         const data = await getCachedData();
         if (data) {
@@ -151,6 +153,7 @@ function setupVisualizationControls() {
         btnTimeline.classed("active", false);
         btnRadar.classed("active", true);
         yearSelectionContainer.style("display", "block");
+        categoryFilterContainer.style("display", "none");
 
         const data = await getCachedData();
         if (data) {

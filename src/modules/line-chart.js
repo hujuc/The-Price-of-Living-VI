@@ -1,15 +1,127 @@
 /**
  * Line Chart Module
- * Creates line charts for inflation data over time
+ * Creates line charts for inflation data over time with category filtering
  */
+
+let chartData = null;
+let selectedCategories = new Set();
 
 /**
  * Create inflation by categories line chart
- * Shows temporal evolution with Total highlighted
+ * Shows temporal evolution with Total highlighted and category filters
  */
 export function createInflationCategoriesChart(data) {
+    chartData = data;
+
+    // Initialize all categories as selected
+    selectedCategories.clear();
+    data.categories.forEach(c => selectedCategories.add(c.name));
+
+    // Create category filter checkboxes
+    createCategoryFilters(data);
+
+    // Draw the chart
+    drawChart();
+}
+
+/**
+ * Create category filter checkboxes
+ */
+function createCategoryFilters(data) {
+    const filterContainer = d3.select("#category-filter-container");
+    filterContainer.html("");
+
+    const filterDiv = filterContainer.append("div")
+        .attr("class", "category-filters");
+
+    // Find Total and other categories
+    const totalCategory = data.categories.find(c => c.name === "Total");
+    const otherCategories = data.categories.filter(c => c.name !== "Total");
+
+    // Add Total checkbox (always visible, styled differently)
+    const totalItem = filterDiv.append("label")
+        .attr("class", "category-filter-item total-category");
+
+    totalItem.append("input")
+        .attr("type", "checkbox")
+        .attr("checked", true)
+        .attr("value", "Total")
+        .on("change", function() {
+            if (this.checked) {
+                selectedCategories.add("Total");
+            } else {
+                selectedCategories.delete("Total");
+            }
+            drawChart();
+        });
+
+    totalItem.append("span")
+        .attr("class", "category-label")
+        .text("Total");
+
+    // Add other category checkboxes
+    otherCategories.forEach(category => {
+        const item = filterDiv.append("label")
+            .attr("class", "category-filter-item");
+
+        item.append("input")
+            .attr("type", "checkbox")
+            .attr("checked", true)
+            .attr("value", category.name)
+            .on("change", function() {
+                if (this.checked) {
+                    selectedCategories.add(category.name);
+                } else {
+                    selectedCategories.delete(category.name);
+                }
+                drawChart();
+            });
+
+        item.append("span")
+            .attr("class", "category-label")
+            .text(category.name);
+    });
+
+    // Add select/deselect all buttons
+    const buttonContainer = filterDiv.append("div")
+        .attr("class", "filter-buttons");
+
+    buttonContainer.append("button")
+        .attr("class", "filter-btn")
+        .text("Selecionar Todas")
+        .on("click", function() {
+            selectedCategories.clear();
+            data.categories.forEach(c => selectedCategories.add(c.name));
+            filterContainer.selectAll("input[type='checkbox']").property("checked", true);
+            drawChart();
+        });
+
+    buttonContainer.append("button")
+        .attr("class", "filter-btn")
+        .text("Desselecionar Todas")
+        .on("click", function() {
+            selectedCategories.clear();
+            filterContainer.selectAll("input[type='checkbox']").property("checked", false);
+            drawChart();
+        });
+}
+
+/**
+ * Draw the line chart based on selected categories
+ */
+function drawChart() {
     const container = d3.select("#viz-inflation-categories");
-    container.html("");
+    container.selectAll("*").remove(); // Remove everything, not just SVG
+
+    if (selectedCategories.size === 0) {
+        container.append("div")
+            .attr("class", "empty-message")
+            .style("text-align", "center")
+            .style("padding", "50px")
+            .style("color", "#7f8c8d")
+            .text("Selecione pelo menos uma categoria para visualizar");
+        return;
+    }
 
     // Set dimensions and margins
     const margin = { top: 60, right: 250, bottom: 80, left: 80 };
@@ -23,16 +135,17 @@ export function createInflationCategoriesChart(data) {
         .append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // Find Total category and other categories
-    const totalCategory = data.categories.find(c => c.name === "Total");
-    const otherCategories = data.categories.filter(c => c.name !== "Total");
+    // Filter categories based on selection
+    const visibleCategories = chartData.categories.filter(c => selectedCategories.has(c.name));
+    const totalCategory = visibleCategories.find(c => c.name === "Total");
+    const otherCategories = visibleCategories.filter(c => c.name !== "Total");
 
     // Set scales
     const xScale = d3.scaleLinear()
-        .domain([d3.min(data.years), d3.max(data.years)])
+        .domain([d3.min(chartData.years), d3.max(chartData.years)])
         .range([0, width]);
 
-    const allValues = data.categories.flatMap(c => c.values.map(v => v.value));
+    const allValues = visibleCategories.flatMap(c => c.values.map(v => v.value));
     const yScale = d3.scaleLinear()
         .domain([d3.min(allValues) - 2, d3.max(allValues) + 2])
         .range([height, 0]);
@@ -92,12 +205,13 @@ export function createInflationCategoriesChart(data) {
     otherCategories.forEach(category => {
         svg.append("path")
             .datum(category.values)
-            .attr("class", "line category-line")
+            .attr("class", `line category-line category-${category.name.replace(/\s+/g, '-')}`)
             .attr("d", line)
             .attr("stroke", colorScale(category.name))
             .attr("stroke-width", 1.5)
-            .attr("opacity", 0.4)
-            .attr("fill", "none");
+            .attr("opacity", 0.6)
+            .attr("fill", "none")
+            .style("transition", "opacity 0.3s");
     });
 
     // Draw Total line (prominent)
@@ -145,14 +259,14 @@ export function createInflationCategoriesChart(data) {
             .attr("y2", yPos)
             .attr("stroke", colorScale(category.name))
             .attr("stroke-width", 2)
-            .attr("opacity", 0.6);
+            .attr("opacity", 0.8);
 
         legend.append("text")
             .attr("x", 25)
             .attr("y", yPos + 4)
             .text(category.name.length > 25 ? category.name.substring(0, 22) + "..." : category.name)
             .attr("font-size", "10px")
-            .attr("opacity", 0.7);
+            .attr("opacity", 0.8);
     });
 
     // Add title
@@ -165,5 +279,5 @@ export function createInflationCategoriesChart(data) {
         .attr("fill", "#2c3e50")
         .text("Evolução da Taxa de Inflação por Categoria (1960-2024)");
 
-    console.log("Inflation categories chart created successfully");
+    console.log("Inflation categories chart created successfully with", selectedCategories.size, "categories");
 }
