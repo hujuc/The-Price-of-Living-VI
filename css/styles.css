@@ -237,6 +237,65 @@ body {
     transform: translateY(0);
 }
 
+/* Year Selection Controls */
+.year-selection {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e0e0e0;
+}
+
+.year-selection h4 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    font-size: 1rem;
+}
+
+.year-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.year-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 80px;
+}
+
+.year-checkbox-item:hover {
+    background-color: #f0f7ff;
+    border-color: var(--secondary-color);
+}
+
+.year-checkbox-item input[type="checkbox"] {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+
+.year-checkbox-item label {
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    margin: 0;
+}
+
+.year-checkbox-item input[type="checkbox"]:checked + label {
+    font-weight: 600;
+    color: var(--secondary-color);
+}
+
 /* Key Findings */
 .key-findings {
     background-color: white;

@@ -111,37 +111,16 @@
                 <!-- Visualization Mode Buttons -->
                 <div class="viz-controls">
                     <button id="btn-timeline-view" class="viz-button active">Ao longo dos anos</button>
-                    <button id="btn-alternative-view" class="viz-button">Outra visualização</button>
+                    <button id="btn-radar-view" class="viz-button">Por categoria</button>
+                </div>
+
+                <!-- Year selection for radar chart -->
+                <div id="year-selection-container" class="year-selection" style="display: none;">
+                    <h4>Selecione os anos para comparar:</h4>
+                    <div id="year-checkboxes" class="year-checkboxes"></div>
                 </div>
 
                 <div id="viz-inflation-categories" class="viz-canvas"></div>
-            </div>
-
-            <!-- Visualization 2: Inflation Over Time -->
-            <div class="visualization-container">
-                <h3>Evolução da Inflação em Portugal</h3>
-                <p class="viz-description">
-                    Este gráfico mostra a evolução temporal da inflação total e subjacente em Portugal.
-                </p>
-                <div id="viz-inflation-timeline" class="viz-canvas"></div>
-            </div>
-
-            <!-- Visualization 3: Prices vs Wages -->
-            <div class="visualization-container">
-                <h3>Preços vs. Salários</h3>
-                <p class="viz-description">
-                    Comparação entre a evolução dos preços e dos salários ao longo do tempo.
-                </p>
-                <div id="viz-prices-wages" class="viz-canvas"></div>
-            </div>
-
-            <!-- Visualization 4: Income Distribution -->
-            <div class="visualization-container">
-                <h3>Impacto na Distribuição de Rendimento</h3>
-                <p class="viz-description">
-                    Como a inflação afeta a quota de rendimento dos 40% mais pobres.
-                </p>
-                <div id="viz-income-distribution" class="viz-canvas"></div>
             </div>
         </div>
     </section>
@@ -181,7 +160,7 @@
         </div>
     </footer>
 
-    <!-- JavaScript -->
-    <script src="src/main.js"></script>
+    <!-- JavaScript (ES6 Modules) -->
+    <script type="module" src="src/main.js"></script>
 </body>
 </html>
