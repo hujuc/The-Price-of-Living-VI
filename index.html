@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="css/styles.css">
     <!-- D3.js Library -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- TopoJSON for map data -->
+    <script src="https://unpkg.com/topojson@3"></script>
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -137,6 +139,28 @@
                 </div>
 
                 <div id="viz-bullet-graph" class="viz-canvas"></div>
+            </div>
+
+            <!-- Visualization 3: Choropleth Map - Europe HICP -->
+            <div class="visualization-container">
+                <h3>Índice Harmonizado de Preços no Consumidor (HICP) - Europa</h3>
+                <p class="viz-description">
+                    Comparação da inflação entre países europeus. Passe o rato sobre cada país para ver os detalhes.
+                </p>
+
+                <!-- Map controls -->
+                <div class="map-controls">
+                    <div class="map-control-group">
+                        <label for="map-year-select">Ano:</label>
+                        <select id="map-year-select" class="map-select"></select>
+                    </div>
+                    <div class="map-control-group">
+                        <label for="map-category-select">Categoria:</label>
+                        <select id="map-category-select" class="map-select"></select>
+                    </div>
+                </div>
+
+                <div id="viz-choropleth-map" class="viz-canvas"></div>
             </div>
         </div>
     </section>

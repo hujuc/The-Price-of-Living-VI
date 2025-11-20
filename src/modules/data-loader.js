@@ -3,6 +3,8 @@
  * Handles loading and processing of CSV data
  */
 
+let hicpData = null;
+
 /**
  * Load CSV data from file
  */
@@ -207,6 +209,61 @@ export async function loadBulletGraphData() {
 
     } catch (error) {
         console.error("Error loading bullet graph data:", error);
+        return null;
+    }
+}
+
+/**
+ * Load and process HICP data for Europe choropleth map
+ */
+export async function loadHICPData() {
+    if (hicpData) return hicpData;
+
+    try {
+        const data = await loadCSVData('data/HICP.csv');
+        if (!data) return null;
+
+        // Process data by year, country, and category
+        const processedData = {};
+        const countries = new Set();
+        const years = new Set();
+        const categories = new Set();
+
+        data.forEach(row => {
+            const year = parseInt(row["01. Ano"]);
+            const country = row["02. Nome País (Europa)"];
+            const category = row["03. Filtro 1"];
+            const valueStr = row["08. Valor"];
+
+            // Skip invalid rows
+            if (!year || !country || !category || !valueStr || valueStr === 'x') return;
+
+            const value = parseFloat(valueStr);
+            if (isNaN(value)) return;
+
+            // Add to sets
+            years.add(year);
+            countries.add(country);
+            categories.add(category);
+
+            // Create nested structure: year -> country -> category -> value
+            if (!processedData[year]) processedData[year] = {};
+            if (!processedData[year][country]) processedData[year][country] = {};
+            processedData[year][country][category] = value;
+        });
+
+        hicpData = {
+            data: processedData,
+            years: Array.from(years).sort((a, b) => a - b),
+            countries: Array.from(countries).sort(),
+            categories: Array.from(categories).sort()
+        };
+
+        console.log("HICP data loaded:", hicpData.years.length, "years,", hicpData.countries.length, "countries");
+        return hicpData;
+
+    } catch (error) {
+        console.error("Error loading HICP data:", error);
         return null;
     }
 }

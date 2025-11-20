@@ -3,10 +3,11 @@
  * The Price of Living - Information Visualization Project
  */
 
-import { loadInflationByCategories, loadBulletGraphData } from './modules/data-loader.js';
+import { loadInflationByCategories, loadBulletGraphData, loadHICPData } from './modules/data-loader.js';
 import { createInflationCategoriesChart } from './modules/line-chart.js';
 import { createRadarChart, setupYearSelection, updateRadarChart } from './modules/radar-chart.js';
 import { setupBulletYearSelector } from './modules/bullet-graph.js';
+import { createChoroplethMap, setupChoroplethControls } from './modules/choropleth-map.js';
 import { initSmoothScroll } from './modules/utils.js';
 
 /**
@@ -29,6 +30,9 @@ async function initializeApp() {
 
     // Load and create bullet graph visualization
     await loadAndDisplayBulletGraph();
+
+    // Load and create choropleth map visualization
+    await loadAndDisplayChoroplethMap();
 
     // Setup navigation and controls
     initSmoothScroll();
@@ -66,6 +70,26 @@ async function loadAndDisplayBulletGraph() {
         }
     } catch (error) {
         console.error("Error in loadAndDisplayBulletGraph:", error);
+    }
+}
+
+/**
+ * Load and display choropleth map
+ */
+async function loadAndDisplayChoroplethMap() {
+    try {
+        const hicpData = await loadHICPData();
+        if (hicpData) {
+            setupChoroplethControls(hicpData);
+            await createChoroplethMap(hicpData);
+        } else {
+            d3.select("#viz-choropleth-map")
+                .html("<div style='text-align: center; padding: 50px; color: #e74c3c;'><p>Erro ao carregar dados HICP</p></div>");
+        }
+    } catch (error) {
+        console.error("Error in loadAndDisplayChoroplethMap:", error);
+        d3.select("#viz-choropleth-map")
+            .html("<div style='text-align: center; padding: 50px; color: #e74c3c;'><p>Erro ao carregar mapa: " + error.message + "</p></div>");
     }
 }
 
@@ -116,5 +140,6 @@ function setupVisualizationControls() {
 window.visualizations = {
     createInflationCategoriesChart,
     createRadarChart,
-    setupBulletYearSelector
+    setupBulletYearSelector,
+    createChoroplethMap
 };
