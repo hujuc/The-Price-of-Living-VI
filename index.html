@@ -73,25 +73,20 @@
                     <h3>📊 Índice de Preços no Consumidor (IPC)</h3>
                     <p>Mostra como os preços evoluem em diferentes categorias, como alimentação ou transportes.</p>
                 </div>
-                
+
                 <div class="data-card">
                     <h3>💰 Salário Mínimo Nacional</h3>
                     <p>Permite avaliar se os rendimentos acompanharam a subida dos preços.</p>
                 </div>
-                
+
                 <div class="data-card">
                     <h3>🇪🇺 Índice Harmonizado de Preços (HICP)</h3>
                     <p>Garante comparabilidade com a média da União Europeia.</p>
                 </div>
-                
+
                 <div class="data-card">
                     <h3>📈 Quota de Rendimento dos 40% Mais Pobres</h3>
                     <p>Mostra como é distribuído o rendimento em Portugal.</p>
-                </div>
-                
-                <div class="data-card">
-                    <h3>🔢 Taxa de Inflação Total e Subjacente</h3>
-                    <p>Mede a variação média anual dos preços, distinguindo energia e alimentos não transformados.</p>
                 </div>
             </div>
         </div>
@@ -108,6 +103,9 @@
                 <h3>Taxa de Inflação por Bens e Serviços</h3>
                 <p class="viz-description">
                     Evolução da taxa de inflação em Portugal por diferentes categorias de bens e serviços desde 1960.
+                </p>
+                <p class="viz-source">
+                    <strong>Fonte:</strong> <a href="https://www.pordata.pt/pt/estatisticas/inflacao/taxa-de-inflacao/taxa-de-inflacao-por-bens-e-servicos-portugal" target="_blank" rel="noopener noreferrer">Pordata - Taxa de Inflação por Bens e Serviços (Portugal)</a>
                 </p>
 
                 <!-- Visualization Mode Buttons -->
@@ -131,6 +129,9 @@
                 <p class="viz-description">
                     Comparação entre o salário mínimo nominal e o salário real (ajustado pela inflação) face ao ano base de 2012.
                 </p>
+                <p class="viz-source">
+                    <strong>Fontes:</strong> <a href="https://www.pordata.pt/pt/estatisticas/salarios-e-pensoes/salarios/salario-minimo-nacional" target="_blank" rel="noopener noreferrer">Pordata - Salário Mínimo Nacional</a> | <a href="https://www.pordata.pt/pt/estatisticas/inflacao/taxa-de-inflacao/taxa-de-inflacao-por-bens-e-servicos-portugal" target="_blank" rel="noopener noreferrer">Taxa de Inflação</a>
+                </p>
 
                 <!-- Year selector for bullet graph -->
                 <div class="bullet-controls">
@@ -147,6 +148,9 @@
                 <p class="viz-description">
                     Comparação da inflação entre países europeus. Passe o rato sobre cada país para ver os detalhes.
                 </p>
+                <p class="viz-source">
+                    <strong>Fonte:</strong> <a href="https://www.pordata.pt/pt/estatisticas/inflacao/taxa-de-inflacao/taxa-de-inflacao-por-bens-e-servicos-portugal-na-europa" target="_blank" rel="noopener noreferrer">Pordata - Taxa de Inflação por Bens e Serviços (Portugal na Europa)</a>
+                </p>
 
                 <!-- Map controls -->
                 <div class="map-controls">
@@ -161,6 +165,25 @@
                 </div>
 
                 <div id="viz-choropleth-map" class="viz-canvas"></div>
+            </div>
+
+            <!-- Visualization 4: Scatter Plot - Income vs Inflation -->
+            <div class="visualization-container">
+                <h3>Inflação e Rendimento dos 40% Mais Pobres</h3>
+                <p class="viz-description">
+                    Análise da relação entre a inflação e a distribuição de rendimento em Portugal (2000-2024).
+                </p>
+                <p class="viz-source">
+                    <strong>Fontes:</strong> <a href="https://www.pordata.pt/pt/estatisticas/pobreza/desigualdade-na-distribuicao-dos-rendimentos/rendimento-dos-40-mais-pobres-da" target="_blank" rel="noopener noreferrer">Pordata - Rendimento dos 40% Mais Pobres</a> | <a href="https://www.pordata.pt/pt/estatisticas/inflacao/taxa-de-inflacao/taxa-de-inflacao-por-bens-e-servicos-portugal" target="_blank" rel="noopener noreferrer">Taxa de Inflação</a>
+                </p>
+
+                <!-- Scatter view buttons -->
+                <div class="viz-controls">
+                    <button id="btn-scatter-variation" class="viz-button active">Variação da Inflação</button>
+                    <button id="btn-scatter-timeline" class="viz-button">Evolução Temporal</button>
+                </div>
+
+                <div id="viz-scatter-plot" class="viz-canvas"></div>
             </div>
         </div>
     </section>

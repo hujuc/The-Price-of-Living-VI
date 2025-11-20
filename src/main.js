@@ -3,11 +3,12 @@
  * The Price of Living - Information Visualization Project
  */
 
-import { loadInflationByCategories, loadBulletGraphData, loadHICPData } from './modules/data-loader.js';
+import { loadInflationByCategories, loadBulletGraphData, loadHICPData, loadIncomeAndInflationData } from './modules/data-loader.js';
 import { createInflationCategoriesChart } from './modules/line-chart.js';
 import { createRadarChart, setupYearSelection, updateRadarChart } from './modules/radar-chart.js';
 import { setupBulletYearSelector } from './modules/bullet-graph.js';
 import { createChoroplethMap, setupChoroplethControls } from './modules/choropleth-map.js';
+import { createScatterPlot, setupScatterControls } from './modules/scatter-plot.js';
 import { initSmoothScroll } from './modules/utils.js';
 
 /**
@@ -33,6 +34,9 @@ async function initializeApp() {
 
     // Load and create choropleth map visualization
     await loadAndDisplayChoroplethMap();
+
+    // Load and create scatter plot visualization
+    await loadAndDisplayScatterPlot();
 
     // Setup navigation and controls
     initSmoothScroll();
@@ -94,6 +98,25 @@ async function loadAndDisplayChoroplethMap() {
 }
 
 /**
+ * Load and display scatter plot
+ */
+async function loadAndDisplayScatterPlot() {
+    try {
+        const scatterData = await loadIncomeAndInflationData();
+        if (scatterData) {
+            setupScatterControls(scatterData);
+        } else {
+            d3.select("#viz-scatter-plot")
+                .html("<div style='text-align: center; padding: 50px; color: #e74c3c;'><p>Erro ao carregar dados de rendimento e inflação</p></div>");
+        }
+    } catch (error) {
+        console.error("Error in loadAndDisplayScatterPlot:", error);
+        d3.select("#viz-scatter-plot")
+            .html("<div style='text-align: center; padding: 50px; color: #e74c3c;'><p>Erro ao carregar scatter plot: " + error.message + "</p></div>");
+    }
+}
+
+/**
  * Setup visualization controls (toggle buttons)
  */
 function setupVisualizationControls() {
@@ -141,5 +164,6 @@ window.visualizations = {
     createInflationCategoriesChart,
     createRadarChart,
     setupBulletYearSelector,
-    createChoroplethMap
+    createChoroplethMap,
+    createScatterPlot
 };

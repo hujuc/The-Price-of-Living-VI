@@ -4,6 +4,7 @@
  */
 
 let hicpData = null;
+let incomeData = null;
 
 /**
  * Load CSV data from file
@@ -264,6 +265,98 @@ export async function loadHICPData() {
 
     } catch (error) {
         console.error("Error loading HICP data:", error);
+        return null;
+    }
+}
+
+/**
+ * Load and process income share data for the poorest 40%
+ * Combines with inflation data for scatter plot analysis
+ */
+export async function loadIncomeAndInflationData() {
+    if (incomeData) return incomeData;
+
+    try {
+        // Load both datasets
+        const [poorIncomeCSV, inflationData] = await Promise.all([
+            loadCSVData('data/40-mais-pobres.csv'),
+            loadInflationByCategories()
+        ]);
+
+        if (!poorIncomeCSV || !inflationData) return null;
+
+        // Process income data for Portugal
+        const portugalIncomeData = [];
+        const years = [];
+
+        poorIncomeCSV.forEach(row => {
+            const year = parseInt(row["01. Ano"]);
+            const country = row["02. Nome País (Europa)"];
+            const valueStr = row["09. Valor"];
+
+            if (country === "Portugal" && year && valueStr && valueStr !== 'x') {
+                const incomeShare = parseFloat(valueStr);
+                if (!isNaN(incomeShare)) {
+                    portugalIncomeData.push({
+                        year: year,
+                        incomeShare: incomeShare
+                    });
+                    years.push(year);
+                }
+            }
+        });
+
+        // Sort by year
+        portugalIncomeData.sort((a, b) => a.year - b.year);
+
+        // Get total inflation data for Portugal
+        const totalInflation = inflationData.categories.find(c => c.name === "Total");
+        if (!totalInflation) {
+            console.error("Total inflation data not found");
+            return null;
+        }
+
+        // Combine data and calculate year-over-year inflation variation
+        const combinedData = [];
+
+        for (let i = 0; i < portugalIncomeData.length; i++) {
+            const currentYear = portugalIncomeData[i].year;
+            const incomeShare = portugalIncomeData[i].incomeShare;
+
+            // Find inflation rate for current year
+            const inflationRate = totalInflation.values.find(v => v.year === currentYear);
+
+            // Calculate inflation variation (difference from previous year)
+            let inflationVariation = null;
+            if (i > 0) {
+                const prevYear = portugalIncomeData[i - 1].year;
+                const prevInflation = totalInflation.values.find(v => v.year === prevYear);
+
+                if (inflationRate && prevInflation) {
+                    inflationVariation = inflationRate.value - prevInflation.value;
+                }
+            }
+
+            if (inflationRate) {
+                combinedData.push({
+                    year: currentYear,
+                    incomeShare: incomeShare,
+                    inflationRate: inflationRate.value,
+                    inflationVariation: inflationVariation
+                });
+            }
+        }
+
+        incomeData = {
+            data: combinedData,
+            years: years.sort((a, b) => a - b)
+        };
+
+        console.log("Income and inflation data combined:", incomeData.data.length, "data points");
+        return incomeData;
+
+    } catch (error) {
+        console.error("Error loading income and inflation data:", error);
         return null;
     }
 }
