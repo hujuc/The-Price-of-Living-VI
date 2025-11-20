@@ -101,7 +101,23 @@
             <h2>Visualizações</h2>
             <p>Explore os dados de forma interativa através das visualizações abaixo.</p>
             
-            <!-- Visualization 1: Inflation Over Time -->
+            <!-- Visualization 1: Inflation by Category -->
+            <div class="visualization-container">
+                <h3>Taxa de Inflação por Bens e Serviços</h3>
+                <p class="viz-description">
+                    Evolução da taxa de inflação em Portugal por diferentes categorias de bens e serviços desde 1960.
+                </p>
+
+                <!-- Visualization Mode Buttons -->
+                <div class="viz-controls">
+                    <button id="btn-timeline-view" class="viz-button active">Ao longo dos anos</button>
+                    <button id="btn-alternative-view" class="viz-button">Outra visualização</button>
+                </div>
+
+                <div id="viz-inflation-categories" class="viz-canvas"></div>
+            </div>
+
+            <!-- Visualization 2: Inflation Over Time -->
             <div class="visualization-container">
                 <h3>Evolução da Inflação em Portugal</h3>
                 <p class="viz-description">
@@ -110,7 +126,7 @@
                 <div id="viz-inflation-timeline" class="viz-canvas"></div>
             </div>
 
-            <!-- Visualization 2: Prices vs Wages -->
+            <!-- Visualization 3: Prices vs Wages -->
             <div class="visualization-container">
                 <h3>Preços vs. Salários</h3>
                 <p class="viz-description">
@@ -119,7 +135,7 @@
                 <div id="viz-prices-wages" class="viz-canvas"></div>
             </div>
 
-            <!-- Visualization 3: Income Distribution -->
+            <!-- Visualization 4: Income Distribution -->
             <div class="visualization-container">
                 <h3>Impacto na Distribuição de Rendimento</h3>
                 <p class="viz-description">
