@@ -3,9 +3,10 @@
  * The Price of Living - Information Visualization Project
  */
 
-import { loadInflationByCategories } from './modules/data-loader.js';
+import { loadInflationByCategories, loadBulletGraphData } from './modules/data-loader.js';
 import { createInflationCategoriesChart } from './modules/line-chart.js';
 import { createRadarChart, setupYearSelection, updateRadarChart } from './modules/radar-chart.js';
+import { setupBulletYearSelector } from './modules/bullet-graph.js';
 import { initSmoothScroll } from './modules/utils.js';
 
 /**
@@ -26,6 +27,9 @@ async function initializeApp() {
     // Load and create inflation by categories visualization
     await loadAndDisplayInflationData();
 
+    // Load and create bullet graph visualization
+    await loadAndDisplayBulletGraph();
+
     // Setup navigation and controls
     initSmoothScroll();
     setupVisualizationControls();
@@ -45,6 +49,23 @@ async function loadAndDisplayInflationData() {
         }
     } catch (error) {
         console.error("Error in loadAndDisplayInflationData:", error);
+    }
+}
+
+/**
+ * Load and display bullet graph data
+ */
+async function loadAndDisplayBulletGraph() {
+    try {
+        const bulletData = await loadBulletGraphData();
+        if (bulletData) {
+            setupBulletYearSelector(bulletData);
+        } else {
+            d3.select("#viz-bullet-graph")
+                .html("<div style='text-align: center; padding: 50px; color: #e74c3c;'><p>Erro ao carregar dados do salário</p></div>");
+        }
+    } catch (error) {
+        console.error("Error in loadAndDisplayBulletGraph:", error);
     }
 }
 
@@ -94,5 +115,6 @@ function setupVisualizationControls() {
 // Export functions for global access if needed
 window.visualizations = {
     createInflationCategoriesChart,
-    createRadarChart
+    createRadarChart,
+    setupBulletYearSelector
 };

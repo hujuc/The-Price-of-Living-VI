@@ -246,6 +246,46 @@ body {
     border: 1px solid #e0e0e0;
 }
 
+/* Bullet Graph Controls */
+.bullet-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+.bullet-controls label {
+    font-weight: 500;
+    color: var(--primary-color);
+    font-size: 1rem;
+}
+
+.year-select-dropdown {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    border: 2px solid var(--secondary-color);
+    border-radius: 6px;
+    background-color: white;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.year-select-dropdown:hover {
+    border-color: var(--accent-color);
+}
+
+.year-select-dropdown:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
 .year-selection h4 {
     color: var(--primary-color);
     margin-bottom: 1rem;
