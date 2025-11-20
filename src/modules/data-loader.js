@@ -137,11 +137,15 @@ export async function loadMinimumWageData() {
  * Base year is 2012
  */
 export function calculateRealWage(nominalWage, inflationData, year, baseYear = 2012) {
-    if (!inflationData || !inflationData.categories) return null;
+    if (!inflationData || !inflationData.categories) {
+        return null;
+    }
 
     // Find Total inflation category
     const totalInflation = inflationData.categories.find(c => c.name === "Total");
-    if (!totalInflation) return null;
+    if (!totalInflation) {
+        return null;
+    }
 
     // Calculate cumulative inflation from base year to target year
     let cumulativeInflation = 1.0;
@@ -218,11 +222,15 @@ export async function loadBulletGraphData() {
  * Load and process HICP data for Europe choropleth map
  */
 export async function loadHICPData() {
-    if (hicpData) return hicpData;
+    if (hicpData) {
+        return hicpData;
+    }
 
     try {
         const data = await loadCSVData('data/HICP.csv');
-        if (!data) return null;
+        if (!data) {
+            return null;
+        }
 
         // Process data by year, country, and category
         const processedData = {};
@@ -237,10 +245,14 @@ export async function loadHICPData() {
             const valueStr = row["08. Valor"];
 
             // Skip invalid rows
-            if (!year || !country || !category || !valueStr || valueStr === 'x') return;
+            if (!year || !country || !category || !valueStr || valueStr === 'x') {
+                return;
+            }
 
             const value = parseFloat(valueStr);
-            if (isNaN(value)) return;
+            if (isNaN(value)) {
+                return;
+            }
 
             // Add to sets
             years.add(year);
@@ -248,8 +260,12 @@ export async function loadHICPData() {
             categories.add(category);
 
             // Create nested structure: year -> country -> category -> value
-            if (!processedData[year]) processedData[year] = {};
-            if (!processedData[year][country]) processedData[year][country] = {};
+            if (!processedData[year]) {
+                processedData[year] = {};
+            }
+            if (!processedData[year][country]) {
+                processedData[year][country] = {};
+            }
             processedData[year][country][category] = value;
         });
 
@@ -274,7 +290,9 @@ export async function loadHICPData() {
  * Combines with inflation data for scatter plot analysis
  */
 export async function loadIncomeAndInflationData() {
-    if (incomeData) return incomeData;
+    if (incomeData) {
+        return incomeData;
+    }
 
     try {
         // Load both datasets
@@ -283,7 +301,9 @@ export async function loadIncomeAndInflationData() {
             loadInflationByCategories()
         ]);
 
-        if (!poorIncomeCSV || !inflationData) return null;
+        if (!poorIncomeCSV || !inflationData) {
+            return null;
+        }
 
         // Process income data for Portugal
         const portugalIncomeData = [];

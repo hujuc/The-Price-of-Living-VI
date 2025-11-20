@@ -5,9 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Price of Living: A Visual Journey Through Inflation</title>
     <link rel="stylesheet" href="css/styles.css">
-    <!-- D3.js Library -->
+
+    <!--
+        D3.js v7 - Data-Driven Documents
+        Purpose: JavaScript library for creating interactive data visualizations in the browser
+        Global object: d3
+        Methods used: d3.csv(), d3.select(), d3.scaleLinear(), d3.line(), d3.axisBottom(),
+                     d3.geoMercator(), d3.geoPath(), d3.scaleSequential(), d3.schemeTableau10
+        Source: https://d3js.org/
+    -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <!-- TopoJSON for map data -->
+
+    <!--
+        TopoJSON v3 - Topology encoding library
+        Purpose: Extension of GeoJSON for encoding topology, used for efficient map geometries
+        Global object: topojson
+        Methods used: topojson.feature()
+        Source: https://github.com/topojson/topojson
+    -->
     <script src="https://unpkg.com/topojson@3"></script>
 </head>
 <body>

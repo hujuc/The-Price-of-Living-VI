@@ -153,13 +153,19 @@ function drawMap(geoData) {
  */
 function getCountryColor(feature) {
     const countryName = getCountryName(feature);
-    if (!countryName) return "#e0e0e0";
+    if (!countryName) {
+        return "#e0e0e0";
+    }
 
     const yearData = hicpData.data[currentYear];
-    if (!yearData || !yearData[countryName]) return "#e0e0e0";
+    if (!yearData || !yearData[countryName]) {
+        return "#e0e0e0";
+    }
 
     const value = yearData[countryName][currentCategory];
-    if (!value) return "#e0e0e0";
+    if (!value) {
+        return "#e0e0e0";
+    }
 
     return colorScale(value);
 }
@@ -171,7 +177,9 @@ function getCountryName(feature) {
     const name = feature.properties.name;
 
     // Check if it's a direct match (English name)
-    if (hicpData.countries.includes(name)) return name;
+    if (hicpData.countries.includes(name)) {
+        return name;
+    }
 
     // Check Portuguese name mapping
     for (const [portuguese, english] of Object.entries(countryNameMap)) {
@@ -188,12 +196,16 @@ function getCountryName(feature) {
  */
 function updateColorScale() {
     const yearData = hicpData.data[currentYear];
-    if (!yearData) return;
+    if (!yearData) {
+        return;
+    }
 
     const values = [];
     Object.values(yearData).forEach(countryData => {
         const value = countryData[currentCategory];
-        if (value) values.push(value);
+        if (value) {
+            values.push(value);
+        }
     });
 
     const min = d3.min(values);
@@ -214,7 +226,9 @@ function handleMouseOver(event, d) {
         .attr("stroke-width", 2);
 
     const countryName = getCountryName(d);
-    if (!countryName) return;
+    if (!countryName) {
+        return;
+    }
 
     const yearData = hicpData.data[currentYear];
     const value = yearData?.[countryName]?.[currentCategory];
