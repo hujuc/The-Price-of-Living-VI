@@ -347,14 +347,14 @@ export async function loadIncomeAndInflationData() {
             const inflationRate = totalInflation.values.find(v => v.year === currentYear);
 
             // Calculate inflation variation (difference from previous year)
+            // IMPORTANT: Use actual previous year (currentYear - 1), not previous index
+            // because income data may have gaps (e.g., 2002, 2003 are missing)
             let inflationVariation = null;
-            if (i > 0) {
-                const prevYear = portugalIncomeData[i - 1].year;
-                const prevInflation = totalInflation.values.find(v => v.year === prevYear);
+            const prevYear = currentYear - 1;
+            const prevInflation = totalInflation.values.find(v => v.year === prevYear);
 
-                if (inflationRate && prevInflation) {
-                    inflationVariation = inflationRate.value - prevInflation.value;
-                }
+            if (inflationRate && prevInflation) {
+                inflationVariation = inflationRate.value - prevInflation.value;
             }
 
             if (inflationRate) {

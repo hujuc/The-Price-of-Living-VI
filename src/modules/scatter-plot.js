@@ -397,11 +397,29 @@ export function setupScatterControls(data) {
         btnVariation.classed("active", true);
         btnTimeline.classed("active", false);
         createScatterPlot(scatterData, "variation");
+        toggleDescriptions("variation");
     });
 
     btnTimeline.on("click", function() {
         btnVariation.classed("active", false);
         btnTimeline.classed("active", true);
         createScatterPlot(scatterData, "timeline");
+        toggleDescriptions("timeline");
     });
+}
+
+/**
+ * Toggle visibility of description texts based on view
+ */
+function toggleDescriptions(view) {
+    const variationDesc = document.getElementById("scatter-variation-desc");
+    const timelineDesc = document.getElementById("scatter-timeline-desc");
+
+    if (view === "variation") {
+        variationDesc.style.display = "block";
+        timelineDesc.style.display = "none";
+    } else {
+        variationDesc.style.display = "none";
+        timelineDesc.style.display = "block";
+    }
 }

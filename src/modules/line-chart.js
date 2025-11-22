@@ -113,6 +113,9 @@ function drawChart() {
     const container = d3.select("#viz-inflation-categories");
     container.selectAll("*").remove(); // Remove everything, not just SVG
 
+    // Remove any existing tooltips
+    d3.selectAll(".line-chart-tooltip").remove();
+
     if (selectedCategories.size === 0) {
         container.append("div")
             .attr("class", "empty-message")
@@ -201,9 +204,22 @@ function drawChart() {
             .tickFormat("")
         );
 
+    // Create tooltip
+    const tooltip = d3.select("body").append("div")
+        .attr("class", "line-chart-tooltip")
+        .style("opacity", 0)
+        .style("position", "absolute")
+        .style("background-color", "rgba(0, 0, 0, 0.8)")
+        .style("color", "white")
+        .style("padding", "10px")
+        .style("border-radius", "5px")
+        .style("font-size", "12px")
+        .style("pointer-events", "none")
+        .style("z-index", "1000");
+
     // Draw other category lines (thinner, semi-transparent)
     otherCategories.forEach(category => {
-        svg.append("path")
+        const categoryPath = svg.append("path")
             .datum(category.values)
             .attr("class", `line category-line category-${category.name.replace(/\s+/g, '-')}`)
             .attr("d", line)
@@ -211,18 +227,116 @@ function drawChart() {
             .attr("stroke-width", 1.5)
             .attr("opacity", 0.6)
             .attr("fill", "none")
-            .style("transition", "opacity 0.3s");
+            .style("transition", "opacity 0.3s, stroke-width 0.3s")
+            .style("cursor", "pointer");
+
+        // Add invisible wider path for easier hovering
+        svg.append("path")
+            .datum(category.values)
+            .attr("class", "line-hover-area")
+            .attr("d", line)
+            .attr("stroke", "transparent")
+            .attr("stroke-width", 10)
+            .attr("fill", "none")
+            .style("cursor", "pointer")
+            .on("mouseover", function(event) {
+                // Highlight the line
+                categoryPath
+                    .attr("stroke-width", 3)
+                    .attr("opacity", 1);
+
+                // Show tooltip with category info
+                tooltip.transition()
+                    .duration(200)
+                    .style("opacity", 0.95);
+            })
+            .on("mousemove", function(event) {
+                // Get mouse position relative to SVG
+                const [mouseX] = d3.pointer(event, svg.node());
+
+                // Find closest year
+                const year = Math.round(xScale.invert(mouseX));
+                const dataPoint = category.values.find(v => v.year === year);
+
+                if (dataPoint) {
+                    tooltip.html(`
+                        <strong>${category.name}</strong><br/>
+                        Ano: ${dataPoint.year}<br/>
+                        Inflação: ${dataPoint.value.toFixed(2)}%
+                    `)
+                        .style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                }
+            })
+            .on("mouseout", function() {
+                // Reset line style
+                categoryPath
+                    .attr("stroke-width", 1.5)
+                    .attr("opacity", 0.6);
+
+                // Hide tooltip
+                tooltip.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+            });
     });
 
     // Draw Total line (prominent)
     if (totalCategory) {
-        svg.append("path")
+        const totalPath = svg.append("path")
             .datum(totalCategory.values)
             .attr("class", "line total-line")
             .attr("d", line)
             .attr("stroke", "#e74c3c")
             .attr("stroke-width", 3)
-            .attr("fill", "none");
+            .attr("fill", "none")
+            .style("cursor", "pointer");
+
+        // Add invisible wider path for Total line hover
+        svg.append("path")
+            .datum(totalCategory.values)
+            .attr("class", "line-hover-area")
+            .attr("d", line)
+            .attr("stroke", "transparent")
+            .attr("stroke-width", 10)
+            .attr("fill", "none")
+            .style("cursor", "pointer")
+            .on("mouseover", function(event) {
+                // Highlight the Total line
+                totalPath.attr("stroke-width", 5);
+
+                // Show tooltip
+                tooltip.transition()
+                    .duration(200)
+                    .style("opacity", 0.95);
+            })
+            .on("mousemove", function(event) {
+                // Get mouse position relative to SVG
+                const [mouseX] = d3.pointer(event, svg.node());
+
+                // Find closest year
+                const year = Math.round(xScale.invert(mouseX));
+                const dataPoint = totalCategory.values.find(v => v.year === year);
+
+                if (dataPoint) {
+                    tooltip.html(`
+                        <strong>Total</strong><br/>
+                        Ano: ${dataPoint.year}<br/>
+                        Inflação: ${dataPoint.value.toFixed(2)}%
+                    `)
+                        .style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                }
+            })
+            .on("mouseout", function() {
+                // Reset Total line style
+                totalPath.attr("stroke-width", 3);
+
+                // Hide tooltip
+                tooltip.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+            });
     }
 
     // Add legend
