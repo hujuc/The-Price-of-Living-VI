@@ -223,33 +223,40 @@ function drawVariationView(svg, width, height, margin) {
 }
 
 /**
- * View 2: Income share vs years (timeline)
+ * View 2: Purchasing Power Index over time
  */
 function drawTimelineView(svg, width, height, margin) {
     const plotData = scatterData.data;
 
+    // Calculate purchasing power index for each year
+    // Positive values = better purchasing power (income up more than inflation, or income up and inflation down)
+    // Negative values = worse purchasing power
+    const dataWithPowerIndex = plotData.map(d => ({
+        ...d,
+        purchasingPower: d.incomeVariation !== null && d.inflationVariation !== null
+            ? d.incomeVariation - d.inflationVariation // Simple but effective: income growth - inflation growth
+            : null
+    }));
+
+    // Filter data with valid purchasing power index
+    const validData = dataWithPowerIndex.filter(d => d.purchasingPower !== null);
+
     // Create scales
     const xScale = d3.scaleLinear()
-        .domain(d3.extent(plotData, d => d.year))
+        .domain(d3.extent(validData, d => d.year))
         .range([0, width]);
 
-    const yExtent = d3.extent(plotData, d => d.incomeShare);
-    const yPadding = (yExtent[1] - yExtent[0]) * 0.1;
+    const yExtent = d3.extent(validData, d => d.purchasingPower);
+    const yPadding = Math.max((yExtent[1] - yExtent[0]) * 0.15, 0.5);
 
     const yScale = d3.scaleLinear()
         .domain([yExtent[0] - yPadding, yExtent[1] + yPadding])
         .range([height, 0]);
 
-    // Color scale based on inflation rate
-    const colorScale = d3.scaleSequential()
-        .domain(d3.extent(plotData, d => d.inflationRate))
-        .interpolator(d3.interpolateRdYlGn)
-        .domain(d3.extent(plotData, d => d.inflationRate).reverse()); // Reverse so high inflation = red
-
     // Add X axis
     svg.append("g")
         .attr("transform", `translate(0, ${height})`)
-        .call(d3.axisBottom(xScale).tickFormat(d3.format("d")).ticks(10))
+        .call(d3.axisBottom(xScale).tickFormat(d3.format("d")).ticks(12))
         .append("text")
         .attr("x", width / 2)
         .attr("y", 45)
@@ -270,7 +277,7 @@ function drawTimelineView(svg, width, height, margin) {
         .attr("font-size", "13px")
         .attr("font-weight", "600")
         .attr("text-anchor", "middle")
-        .text("Quota de Rendimento dos 40% mais pobres (%)");
+        .text("Índice de Poder de Compra (p.p.)");
 
     // Add grid lines
     svg.append("g")
@@ -280,52 +287,105 @@ function drawTimelineView(svg, width, height, margin) {
             .tickSize(-width)
             .tickFormat(""));
 
+    // Add zero reference line
+    svg.append("line")
+        .attr("x1", 0)
+        .attr("x2", width)
+        .attr("y1", yScale(0))
+        .attr("y2", yScale(0))
+        .attr("stroke", "#34495e")
+        .attr("stroke-width", 2)
+        .attr("stroke-dasharray", "5,5")
+        .attr("opacity", 0.5);
+
     // Create tooltip
     const tooltip = d3.select("body").append("div")
         .attr("class", "scatter-tooltip")
         .style("opacity", 0);
 
+    // Add area below/above zero line
+    const area = d3.area()
+        .x(d => xScale(d.year))
+        .y0(yScale(0))
+        .y1(d => yScale(d.purchasingPower))
+        .curve(d3.curveMonotoneX);
+
+    svg.append("path")
+        .datum(validData)
+        .attr("fill", "url(#power-gradient)")
+        .attr("opacity", 0.3)
+        .attr("d", area);
+
+    // Define gradient for area
+    const defs = svg.append("defs");
+    const gradient = defs.append("linearGradient")
+        .attr("id", "power-gradient")
+        .attr("x1", "0%")
+        .attr("y1", "0%")
+        .attr("x2", "0%")
+        .attr("y2", "100%");
+
+    gradient.append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", "#27ae60")
+        .attr("stop-opacity", 0.8);
+
+    gradient.append("stop")
+        .attr("offset", "50%")
+        .attr("stop-color", "#f39c12")
+        .attr("stop-opacity", 0.3);
+
+    gradient.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", "#e74c3c")
+        .attr("stop-opacity", 0.8);
+
     // Add connecting line
     const line = d3.line()
         .x(d => xScale(d.year))
-        .y(d => yScale(d.incomeShare));
+        .y(d => yScale(d.purchasingPower))
+        .curve(d3.curveMonotoneX);
 
     svg.append("path")
-        .datum(plotData)
+        .datum(validData)
         .attr("fill", "none")
-        .attr("stroke", "#3498db")
-        .attr("stroke-width", 2)
-        .attr("opacity", 0.5)
+        .attr("stroke", "#2c3e50")
+        .attr("stroke-width", 2.5)
         .attr("d", line);
 
     // Add circles
     svg.selectAll("circle")
-        .data(plotData)
+        .data(validData)
         .enter()
         .append("circle")
         .attr("cx", d => xScale(d.year))
-        .attr("cy", d => yScale(d.incomeShare))
-        .attr("r", 6)
-        .attr("fill", d => colorScale(d.inflationRate))
-        .attr("opacity", 0.8)
+        .attr("cy", d => yScale(d.purchasingPower))
+        .attr("r", 5)
+        .attr("fill", d => d.purchasingPower > 0 ? "#27ae60" : "#e74c3c")
+        .attr("opacity", 0.9)
         .attr("stroke", "#fff")
-        .attr("stroke-width", 1.5)
+        .attr("stroke-width", 2)
         .on("mouseover", function(event, d) {
             d3.select(this)
                 .transition()
                 .duration(200)
-                .attr("r", 9)
+                .attr("r", 8)
                 .attr("opacity", 1);
 
             tooltip.transition()
                 .duration(200)
                 .style("opacity", 0.95);
 
+            const interpretation = d.purchasingPower > 0
+                ? "Ganho de poder de compra"
+                : "Perda de poder de compra";
+
             tooltip.html(`
                 <strong>Ano: ${d.year}</strong><br/>
-                Quota de rendimento: ${d.incomeShare.toFixed(1)}%<br/>
-                Taxa de inflação: ${d.inflationRate.toFixed(2)}%
-                ${d.inflationVariation !== null ? `<br/>Variação: ${d.inflationVariation > 0 ? '+' : ''}${d.inflationVariation.toFixed(2)} p.p.` : ''}
+                Índice: ${d.purchasingPower > 0 ? '+' : ''}${d.purchasingPower.toFixed(2)} p.p.<br/>
+                <em>${interpretation}</em><br/>
+                <small>Var. rendimento: ${d.incomeVariation > 0 ? '+' : ''}${d.incomeVariation.toFixed(2)} p.p.</small><br/>
+                <small>Var. inflação: ${d.inflationVariation > 0 ? '+' : ''}${d.inflationVariation.toFixed(2)} p.p.</small>
             `)
                 .style("left", (event.pageX + 15) + "px")
                 .style("top", (event.pageY - 28) + "px");
@@ -334,8 +394,8 @@ function drawTimelineView(svg, width, height, margin) {
             d3.select(this)
                 .transition()
                 .duration(200)
-                .attr("r", 6)
-                .attr("opacity", 0.8);
+                .attr("r", 5)
+                .attr("opacity", 0.9);
 
             tooltip.transition()
                 .duration(500)
@@ -350,7 +410,7 @@ function drawTimelineView(svg, width, height, margin) {
         .attr("font-size", "16px")
         .attr("font-weight", "bold")
         .attr("fill", "#2c3e50")
-        .text("Evolução do Rendimento dos 40% Mais Pobres ao Longo do Tempo");
+        .text("Evolução do Poder de Compra dos 40% Mais Pobres");
 
     // Add subtitle
     svg.append("text")
@@ -359,69 +419,24 @@ function drawTimelineView(svg, width, height, margin) {
         .attr("text-anchor", "middle")
         .attr("font-size", "12px")
         .attr("fill", "#7f8c8d")
-        .text("Cor indica taxa de inflação (verde = baixa, vermelho = alta)");
+        .text("Índice = Variação Rendimento - Variação Inflação (2001-2024, exceto 2004)");
 
-    // Add color legend
-    addColorLegend(svg, width, height, colorScale);
-}
-
-/**
- * Add color legend for timeline view
- */
-function addColorLegend(svg, width, height, colorScale) {
-    const legendWidth = 200;
-    const legendHeight = 15;
-    const legendX = width - legendWidth - 10;
-    const legendY = height + 55;
-
-    const legendGroup = svg.append("g")
-        .attr("transform", `translate(${legendX}, ${legendY})`);
-
-    // Create gradient
-    const defs = svg.append("defs");
-    const gradient = defs.append("linearGradient")
-        .attr("id", "inflation-gradient");
-
-    const numStops = 10;
-    for (let i = 0; i <= numStops; i++) {
-        const t = i / numStops;
-        gradient.append("stop")
-            .attr("offset", `${t * 100}%`)
-            .attr("stop-color", colorScale.interpolator()(1 - t)); // Reverse for left-to-right
-    }
-
-    // Draw legend rectangle
-    legendGroup.append("rect")
-        .attr("width", legendWidth)
-        .attr("height", legendHeight)
-        .style("fill", "url(#inflation-gradient)");
-
-    // Add legend labels
-    const [min, max] = colorScale.domain().sort((a, b) => a - b);
-
-    legendGroup.append("text")
-        .attr("x", 0)
-        .attr("y", -5)
+    // Add interpretation labels
+    svg.append("text")
+        .attr("x", 10)
+        .attr("y", 15)
         .attr("font-size", "10px")
-        .attr("fill", "#333")
-        .text(`${min.toFixed(1)}%`);
-
-    legendGroup.append("text")
-        .attr("x", legendWidth)
-        .attr("y", -5)
-        .attr("text-anchor", "end")
-        .attr("font-size", "10px")
-        .attr("fill", "#333")
-        .text(`${max.toFixed(1)}%`);
-
-    legendGroup.append("text")
-        .attr("x", legendWidth / 2)
-        .attr("y", -18)
-        .attr("text-anchor", "middle")
-        .attr("font-size", "10px")
+        .attr("fill", "#27ae60")
         .attr("font-weight", "600")
-        .attr("fill", "#333")
-        .text("Taxa de Inflação");
+        .text("↑ Ganho de poder de compra");
+
+    svg.append("text")
+        .attr("x", 10)
+        .attr("y", height - 10)
+        .attr("font-size", "10px")
+        .attr("fill", "#e74c3c")
+        .attr("font-weight", "600")
+        .text("↓ Perda de poder de compra");
 }
 
 /**
