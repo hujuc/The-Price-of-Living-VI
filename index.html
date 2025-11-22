@@ -197,19 +197,22 @@
 
                 <!-- Scatter view buttons -->
                 <div class="viz-controls">
-                    <button id="btn-scatter-variation" class="viz-button active">Variação da Inflação</button>
+                    <button id="btn-scatter-variation" class="viz-button active">Poder de Compra</button>
                     <button id="btn-scatter-timeline" class="viz-button">Evolução Temporal</button>
                 </div>
 
                 <!-- Dynamic descriptions for each view -->
                 <div id="scatter-description" class="viz-interpretation">
                     <p id="scatter-variation-desc" style="display: block;">
-                        <strong>Variação da Inflação:</strong> Este gráfico mostra a correlação entre o rendimento
-                        dos 40% mais pobres e a variação anual da taxa de inflação. Cada ponto representa um ano
-                        diferente. Valores positivos de inflação indicam aumento de preços. Observe como períodos
-                        de alta inflação (ex: 2022-2024) se relacionam com a quota de rendimento dos mais vulneráveis.
-                        Uma tendência descendente sugere que inflação elevada tende a reduzir a participação no
-                        rendimento nacional dos mais pobres.
+                        <strong>Análise do Poder de Compra:</strong> Este gráfico relaciona a variação anual da quota
+                        de rendimento dos 40% mais pobres (eixo Y) com a variação da inflação (eixo X). Cada ponto
+                        representa um ano. As cores indicam cenários distintos: <span style="color: #27ae60;">●</span>
+                        verde = melhor cenário (rendimento sobe, inflação desce); <span style="color: #e74c3c;">●</span>
+                        vermelho = pior cenário (rendimento desce, inflação sobe); <span style="color: #f39c12;">●</span>
+                        laranja = cenário misto positivo; <span style="color: #3498db;">●</span> azul = cenário misto.
+                        Pontos no quadrante superior esquerdo indicam ganhos de poder de compra, enquanto no quadrante
+                        inferior direito indicam perdas significativas. Anos de choques inflacionários (2022-2023) aparecem
+                        claramente à direita do gráfico.
                     </p>
                     <p id="scatter-timeline-desc" style="display: none;">
                         <strong>Evolução Temporal:</strong> Este gráfico apresenta a trajetória ao longo do tempo

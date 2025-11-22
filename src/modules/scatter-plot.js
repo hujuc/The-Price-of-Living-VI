@@ -36,22 +36,24 @@ export function createScatterPlot(data, view = "variation") {
 }
 
 /**
- * View 1: Income share vs inflation variation
+ * View 1: Income variation vs inflation variation (Purchasing Power Analysis)
  */
 function drawVariationView(svg, width, height, margin) {
-    // Filter out data points without inflation variation (first year)
-    const plotData = scatterData.data.filter(d => d.inflationVariation !== null);
+    // Filter out data points without both variations
+    const plotData = scatterData.data.filter(d =>
+        d.inflationVariation !== null && d.incomeVariation !== null
+    );
 
     // Create scales
     const xExtent = d3.extent(plotData, d => d.inflationVariation);
-    const xPadding = (xExtent[1] - xExtent[0]) * 0.1;
+    const xPadding = Math.max((xExtent[1] - xExtent[0]) * 0.1, 0.5);
 
     const xScale = d3.scaleLinear()
         .domain([xExtent[0] - xPadding, xExtent[1] + xPadding])
         .range([0, width]);
 
-    const yExtent = d3.extent(plotData, d => d.incomeShare);
-    const yPadding = (yExtent[1] - yExtent[0]) * 0.1;
+    const yExtent = d3.extent(plotData, d => d.incomeVariation);
+    const yPadding = Math.max((yExtent[1] - yExtent[0]) * 0.1, 0.1);
 
     const yScale = d3.scaleLinear()
         .domain([yExtent[0] - yPadding, yExtent[1] + yPadding])
@@ -68,7 +70,7 @@ function drawVariationView(svg, width, height, margin) {
         .attr("font-size", "13px")
         .attr("font-weight", "600")
         .attr("text-anchor", "middle")
-        .text("Variação da Inflação face ao ano anterior (p.p.)");
+        .text("Variação da Inflação (p.p.)");
 
     // Add Y axis
     svg.append("g")
@@ -81,7 +83,7 @@ function drawVariationView(svg, width, height, margin) {
         .attr("font-size", "13px")
         .attr("font-weight", "600")
         .attr("text-anchor", "middle")
-        .text("Quota de Rendimento dos 40% mais pobres (%)");
+        .text("Variação da Quota de Rendimento (p.p.)");
 
     // Add grid lines
     svg.append("g")
@@ -99,21 +101,41 @@ function drawVariationView(svg, width, height, margin) {
             .tickSize(-height)
             .tickFormat(""));
 
-    // Add zero line for x-axis
+    // Add zero lines (cross at origin)
     svg.append("line")
         .attr("x1", xScale(0))
         .attr("x2", xScale(0))
         .attr("y1", 0)
         .attr("y2", height)
-        .attr("stroke", "#e74c3c")
+        .attr("stroke", "#34495e")
         .attr("stroke-width", 1.5)
         .attr("stroke-dasharray", "5,5")
-        .attr("opacity", 0.6);
+        .attr("opacity", 0.4);
+
+    svg.append("line")
+        .attr("x1", 0)
+        .attr("x2", width)
+        .attr("y1", yScale(0))
+        .attr("y2", yScale(0))
+        .attr("stroke", "#34495e")
+        .attr("stroke-width", 1.5)
+        .attr("stroke-dasharray", "5,5")
+        .attr("opacity", 0.4);
 
     // Create tooltip
     const tooltip = d3.select("body").append("div")
         .attr("class", "scatter-tooltip")
         .style("opacity", 0);
+
+    // Determine color based on quadrant (purchasing power analysis)
+    const getColor = (d) => {
+        // Positive income variation AND negative/low inflation variation = good (green)
+        // Negative income variation AND positive/high inflation variation = bad (red)
+        if (d.incomeVariation > 0 && d.inflationVariation < 0) return "#27ae60"; // Best case
+        if (d.incomeVariation < 0 && d.inflationVariation > 0) return "#e74c3c"; // Worst case
+        if (d.incomeVariation > 0 && d.inflationVariation > 0) return "#f39c12"; // Mixed (income up, inflation up)
+        return "#3498db"; // Mixed (income down, inflation down)
+    };
 
     // Add circles
     svg.selectAll("circle")
@@ -121,9 +143,9 @@ function drawVariationView(svg, width, height, margin) {
         .enter()
         .append("circle")
         .attr("cx", d => xScale(d.inflationVariation))
-        .attr("cy", d => yScale(d.incomeShare))
+        .attr("cy", d => yScale(d.incomeVariation))
         .attr("r", 6)
-        .attr("fill", d => d.inflationVariation > 0 ? "#e74c3c" : "#27ae60")
+        .attr("fill", getColor)
         .attr("opacity", 0.7)
         .attr("stroke", "#fff")
         .attr("stroke-width", 1.5)
@@ -140,9 +162,9 @@ function drawVariationView(svg, width, height, margin) {
 
             tooltip.html(`
                 <strong>Ano: ${d.year}</strong><br/>
-                Quota de rendimento: ${d.incomeShare.toFixed(1)}%<br/>
-                Variação inflação: ${d.inflationVariation > 0 ? '+' : ''}${d.inflationVariation.toFixed(2)} p.p.<br/>
-                Taxa de inflação: ${d.inflationRate.toFixed(2)}%
+                Var. quota rendimento: ${d.incomeVariation > 0 ? '+' : ''}${d.incomeVariation.toFixed(2)} p.p.<br/>
+                Var. inflação: ${d.inflationVariation > 0 ? '+' : ''}${d.inflationVariation.toFixed(2)} p.p.<br/>
+                <small>Quota: ${d.incomeShare.toFixed(1)}% | Inflação: ${d.inflationRate.toFixed(2)}%</small>
             `)
                 .style("left", (event.pageX + 15) + "px")
                 .style("top", (event.pageY - 28) + "px");
@@ -159,6 +181,27 @@ function drawVariationView(svg, width, height, margin) {
                 .style("opacity", 0);
         });
 
+    // Add quadrant labels
+    const labelOffset = 15;
+
+    svg.append("text")
+        .attr("x", width - labelOffset)
+        .attr("y", labelOffset)
+        .attr("text-anchor", "end")
+        .attr("font-size", "11px")
+        .attr("fill", "#27ae60")
+        .attr("font-weight", "600")
+        .text("↑ Rend. ↓ Infl.");
+
+    svg.append("text")
+        .attr("x", width - labelOffset)
+        .attr("y", height - labelOffset)
+        .attr("text-anchor", "end")
+        .attr("font-size", "11px")
+        .attr("fill", "#e74c3c")
+        .attr("font-weight", "600")
+        .text("↓ Rend. ↑ Infl.");
+
     // Add title
     svg.append("text")
         .attr("x", width / 2)
@@ -167,7 +210,7 @@ function drawVariationView(svg, width, height, margin) {
         .attr("font-size", "16px")
         .attr("font-weight", "bold")
         .attr("fill", "#2c3e50")
-        .text("Relação entre Variação da Inflação e Rendimento dos 40% Mais Pobres");
+        .text("Análise do Poder de Compra dos 40% Mais Pobres");
 
     // Add subtitle
     svg.append("text")
@@ -176,7 +219,7 @@ function drawVariationView(svg, width, height, margin) {
         .attr("text-anchor", "middle")
         .attr("font-size", "12px")
         .attr("fill", "#7f8c8d")
-        .text("Cada ponto representa um ano (Portugal, 2001-2024)");
+        .text("Variação de rendimentos vs. variação de inflação (2001-2024, exceto 2004)");
 }
 
 /**

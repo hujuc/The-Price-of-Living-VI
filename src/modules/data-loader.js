@@ -336,7 +336,7 @@ export async function loadIncomeAndInflationData() {
             return null;
         }
 
-        // Combine data and calculate year-over-year inflation variation
+        // Combine data and calculate year-over-year variations
         const combinedData = [];
 
         for (let i = 0; i < portugalIncomeData.length; i++) {
@@ -357,12 +357,23 @@ export async function loadIncomeAndInflationData() {
                 inflationVariation = inflationRate.value - prevInflation.value;
             }
 
+            // Calculate income share variation (difference from previous year)
+            let incomeVariation = null;
+            if (i > 0) {
+                const prevIncomeData = portugalIncomeData[i - 1];
+                // Only calculate if years are consecutive
+                if (prevIncomeData.year === currentYear - 1) {
+                    incomeVariation = incomeShare - prevIncomeData.incomeShare;
+                }
+            }
+
             if (inflationRate) {
                 combinedData.push({
                     year: currentYear,
                     incomeShare: incomeShare,
                     inflationRate: inflationRate.value,
-                    inflationVariation: inflationVariation
+                    inflationVariation: inflationVariation,
+                    incomeVariation: incomeVariation
                 });
             }
         }
