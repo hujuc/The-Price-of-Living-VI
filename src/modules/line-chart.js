@@ -5,13 +5,15 @@
 
 let chartData = null;
 let selectedCategories = new Set();
+let currentCountry = "Portugal";
 
 /**
  * Create inflation by categories line chart
  * Shows temporal evolution with Total highlighted and category filters
  */
-export function createInflationCategoriesChart(data) {
+export function createInflationCategoriesChart(data, country = "Portugal") {
     chartData = data;
+    currentCountry = country;
 
     // Initialize all categories as selected
     selectedCategories.clear();
@@ -383,7 +385,17 @@ function drawChart() {
             .attr("opacity", 0.8);
     });
 
-    // Add title
+    // Add title with country name
+    const countryNames = {
+        "Portugal": "Portugal",
+        "Espanha": "Espanha",
+        "France": "França",
+        "Alemanha": "Alemanha"
+    };
+    const displayCountry = countryNames[currentCountry] || currentCountry;
+    const minYear = d3.min(chartData.years);
+    const maxYear = d3.max(chartData.years);
+
     svg.append("text")
         .attr("x", width / 2)
         .attr("y", -30)
@@ -391,7 +403,7 @@ function drawChart() {
         .attr("font-size", "18px")
         .attr("font-weight", "bold")
         .attr("fill", "#2c3e50")
-        .text("Evolução da Taxa de Inflação por Categoria (1960-2024)");
+        .text(`Evolução da Taxa de Inflação por Categoria - ${displayCountry} (${minYear}-${maxYear})`);
 
     console.log("Inflation categories chart created successfully with", selectedCategories.size, "categories");
 }

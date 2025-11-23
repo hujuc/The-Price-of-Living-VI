@@ -1,19 +1,28 @@
 /**
  * Bullet Graph Module
- * Compares nominal vs real minimum wage relative to base year 2012
+ * Compares nominal vs real minimum wage relative to a dynamic base year
  */
 
 /**
  * Create bullet graph showing nominal vs real wage
  * @param {Object} yearData - Data for selected year {year, nominal, real, baseYear}
- * @param {number} baseNominal - Nominal wage in base year (2012)
+ * @param {number} baseNominal - Nominal wage in the selected base year
+ * @param {string} country - Country name for title
  */
-export function createBulletGraph(yearData, baseNominal) {
+export function createBulletGraph(yearData, baseNominal, country = "Portugal", baseYear = 2012) {
     const container = d3.select("#viz-bullet-graph");
     container.html("");
 
     if (!yearData) {
         container.html("<div style='text-align: center; padding: 50px;'>Selecione um ano</div>");
+        return;
+    }
+
+    const referenceYear = yearData.baseYear ?? baseYear;
+    const referenceNominal = baseNominal;
+
+    if (!referenceNominal || !isFinite(referenceNominal) || referenceNominal <= 0) {
+        container.html("<div style='text-align: center; padding: 50px; color: #e67e22;'>Sem dados suficientes para calcular o ano de referência.</div>");
         return;
     }
 
@@ -30,7 +39,8 @@ export function createBulletGraph(yearData, baseNominal) {
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
     // Determine scale based on maximum value
-    const maxValue = Math.max(yearData.nominal, yearData.real, baseNominal) * 1.1;
+    const maxCandidate = Math.max(yearData.nominal || 0, yearData.real || 0, referenceNominal || 0);
+    const maxValue = (maxCandidate > 0 ? maxCandidate : 1) * 1.1;
 
     const xScale = d3.scaleLinear()
         .domain([0, maxValue])
@@ -38,9 +48,9 @@ export function createBulletGraph(yearData, baseNominal) {
 
     // Define ranges for bullet graph
     const ranges = [
-        { level: "poor", value: baseNominal * 0.8, color: "#fee0d2" },
-        { level: "fair", value: baseNominal * 0.9, color: "#fcbba1" },
-        { level: "good", value: baseNominal, color: "#fc9272" },
+        { level: "poor", value: referenceNominal * 0.8, color: "#fee0d2" },
+        { level: "fair", value: referenceNominal * 0.9, color: "#fcbba1" },
+        { level: "good", value: referenceNominal, color: "#fc9272" },
         { level: "excellent", value: maxValue, color: "#fb6a4a" }
     ];
 
@@ -86,10 +96,10 @@ export function createBulletGraph(yearData, baseNominal) {
                     L ${xScale(yearData.real)},${yCenter - barHeight / 2 - 18} Z`)
         .attr("fill", "#e74c3c");
 
-    // Draw base year reference line (2012)
+    // Draw base year reference line
     svg.append("line")
-        .attr("x1", xScale(baseNominal))
-        .attr("x2", xScale(baseNominal))
+        .attr("x1", xScale(referenceNominal))
+        .attr("x2", xScale(referenceNominal))
         .attr("y1", yCenter - barHeight / 2 - 5)
         .attr("y2", yCenter + barHeight / 2 + 5)
         .attr("stroke", "#3498db")
@@ -136,13 +146,22 @@ export function createBulletGraph(yearData, baseNominal) {
         .text(`${yearData.real.toFixed(1)}€ (real)`);
 
     svg.append("text")
-        .attr("x", xScale(baseNominal))
+        .attr("x", xScale(referenceNominal))
         .attr("y", yCenter - barHeight / 2 - 30)
         .attr("text-anchor", "middle")
         .attr("font-size", "11px")
         .attr("fill", "#3498db")
         .attr("font-weight", "600")
-        .text(`Ref 2012: ${baseNominal.toFixed(1)}€`);
+        .text(`Ref ${referenceYear}: ${referenceNominal.toFixed(1)}€`);
+
+    // Country name mapping for display
+    const countryNames = {
+        "Portugal": "Portugal",
+        "Espanha": "Espanha",
+        "France": "França",
+        "Alemanha": "Alemanha"
+    };
+    const displayCountry = countryNames[country] || country;
 
     // Add title
     svg.append("text")
@@ -152,7 +171,7 @@ export function createBulletGraph(yearData, baseNominal) {
         .attr("font-size", "18px")
         .attr("font-weight", "bold")
         .attr("fill", "#2c3e50")
-        .text(`Salário Mínimo: Nominal vs Real (base 2012)`);
+        .text(`Salário Mínimo: Nominal vs Real (${displayCountry})`);
 
     // Add subtitle
     svg.append("text")
@@ -161,7 +180,7 @@ export function createBulletGraph(yearData, baseNominal) {
         .attr("text-anchor", "middle")
         .attr("font-size", "13px")
         .attr("fill", "#7f8c8d")
-        .text(`Poder de compra do salário em ${yearData.year} comparado com 2012`);
+        .text(`Poder de compra do salário em ${yearData.year} comparado com ${referenceYear}`);
 
     // Add calculation explanation
     const explanationGroup = svg.append("g")
@@ -180,11 +199,18 @@ export function createBulletGraph(yearData, baseNominal) {
         .attr("y", 15)
         .attr("font-size", "10px")
         .attr("fill", "#7f8c8d")
+        .text(`Ano de referência: ${referenceYear}`);
+
+    explanationGroup.append("text")
+        .attr("x", 0)
+        .attr("y", 30)
+        .attr("font-size", "10px")
+        .attr("fill", "#7f8c8d")
         .text("Salário Real = Salário Nominal / Inflação Acumulada");
 
     explanationGroup.append("text")
         .attr("x", 0)
-        .attr("y", 28)
+        .attr("y", 43)
         .attr("font-size", "9px")
         .attr("fill", "#95a5a6")
         .text("Dados: RMMG (salário) + IPC Total (inflação)");
@@ -196,7 +222,7 @@ export function createBulletGraph(yearData, baseNominal) {
     const legendItems = [
         { label: "Salário Nominal", color: "#2c3e50", type: "rect" },
         { label: "Salário Real", color: "#e74c3c", type: "line" },
-        { label: "Referência 2012", color: "#3498db", type: "dash" }
+        { label: `Referência ${referenceYear}`, color: "#3498db", type: "dash" }
     ];
 
     legendItems.forEach((item, i) => {
@@ -237,8 +263,8 @@ export function createBulletGraph(yearData, baseNominal) {
     });
 
     // Calculate and display difference
-    const difference = yearData.real - baseNominal;
-    const percentChange = ((yearData.real - baseNominal) / baseNominal * 100).toFixed(1);
+    const difference = yearData.real - referenceNominal;
+    const percentChange = referenceNominal ? ((yearData.real - referenceNominal) / referenceNominal * 100).toFixed(1) : null;
 
     const diffText = svg.append("text")
         .attr("x", width / 2)
@@ -247,15 +273,18 @@ export function createBulletGraph(yearData, baseNominal) {
         .attr("font-size", "14px")
         .attr("font-weight", "600");
 
-    if (difference > 0) {
+    if (percentChange === null) {
+        diffText.attr("fill", "#7f8c8d")
+            .text("Sem referência para comparar o poder de compra.");
+    } else if (difference > 0) {
         diffText.attr("fill", "#27ae60")
-            .text(`+${difference.toFixed(1)}€ (+${percentChange}%) em poder de compra vs 2012`);
+            .text(`+${difference.toFixed(1)}€ (+${percentChange}%) em poder de compra vs ${referenceYear}`);
     } else if (difference < 0) {
         diffText.attr("fill", "#e74c3c")
-            .text(`${difference.toFixed(1)}€ (${percentChange}%) em poder de compra vs 2012`);
+            .text(`${difference.toFixed(1)}€ (${percentChange}%) em poder de compra vs ${referenceYear}`);
     } else {
         diffText.attr("fill", "#7f8c8d")
-            .text(`Mesmo poder de compra que 2012`);
+            .text(`Mesmo poder de compra que ${referenceYear}`);
     }
 
     console.log("Bullet graph created successfully for year", yearData.year);
@@ -264,7 +293,7 @@ export function createBulletGraph(yearData, baseNominal) {
 /**
  * Setup year selector for bullet graph
  */
-export function setupBulletYearSelector(bulletGraphData) {
+export function setupBulletYearSelector(bulletGraphData, country = "Portugal") {
     const container = d3.select("#bullet-year-selector");
     container.html("");
 
@@ -273,8 +302,11 @@ export function setupBulletYearSelector(bulletGraphData) {
         return;
     }
 
-    const { data, years } = bulletGraphData;
-    const baseNominal = data[2012] ? data[2012].nominal : 0;
+    const { data, years, baseYear, baseNominal } = bulletGraphData;
+
+    if (!baseYear || !baseNominal) {
+        console.warn("Bullet graph base information missing", bulletGraphData);
+    }
 
     // Create dropdown
     const select = container.append("select")
@@ -285,23 +317,27 @@ export function setupBulletYearSelector(bulletGraphData) {
     years.forEach(year => {
         select.append("option")
             .attr("value", year)
-            .property("selected", year === 2020) // Default to 2020
+            .property("selected", false)
             .text(year);
     });
 
     // Initial render
-    const initialYear = 2020;
-    if (data[initialYear]) {
-        createBulletGraph(data[initialYear], baseNominal);
+    const initialYear = [...years].reverse().find(year => data[year]);
+    if (initialYear) {
+        select.property("value", initialYear);
+        createBulletGraph(data[initialYear], baseNominal, country, baseYear);
+    } else {
+        d3.select("#viz-bullet-graph")
+            .html("<div style='text-align: center; padding: 50px; color: #e74c3c;'>Sem dados suficientes para gerar o gráfico.</div>");
     }
 
     // Add change listener
     select.on("change", function() {
         const selectedYear = +this.value;
         if (data[selectedYear]) {
-            createBulletGraph(data[selectedYear], baseNominal);
+            createBulletGraph(data[selectedYear], baseNominal, country, baseYear);
         }
     });
 
-    console.log("Year selector created with", years.length, "years");
+    console.log(`Year selector created for ${country} with`, years.length, "years");
 }

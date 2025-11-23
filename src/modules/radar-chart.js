@@ -5,11 +5,14 @@
 
 import { wrapText } from './utils.js';
 
+let currentCountry = "Portugal";
+
 /**
  * Create radar chart for inflation by category
  * Compares multiple years across all categories
  */
-export function createRadarChart(data, selectedYears) {
+export function createRadarChart(data, selectedYears, country = "Portugal") {
+    currentCountry = country;
     const container = d3.select("#viz-inflation-categories");
     container.html("");
 
@@ -187,7 +190,15 @@ export function createRadarChart(data, selectedYears) {
             .text(year);
     });
 
-    // Add title
+    // Add title with country name
+    const countryNames = {
+        "Portugal": "Portugal",
+        "Espanha": "Espanha",
+        "France": "França",
+        "Alemanha": "Alemanha"
+    };
+    const displayCountry = countryNames[currentCountry] || currentCountry;
+
     svg.append("text")
         .attr("x", 0)
         .attr("y", -radius - 50)
@@ -195,7 +206,7 @@ export function createRadarChart(data, selectedYears) {
         .attr("font-size", "18px")
         .attr("font-weight", "bold")
         .attr("fill", "#2c3e50")
-        .text("Taxa de Inflação por Categoria");
+        .text(`Taxa de Inflação por Categoria - ${displayCountry}`);
 
     console.log("Radar chart created successfully");
 }
@@ -203,7 +214,8 @@ export function createRadarChart(data, selectedYears) {
 /**
  * Setup year selection checkboxes
  */
-export function setupYearSelection(data, onUpdateCallback) {
+export function setupYearSelection(data, onUpdateCallback, country = "Portugal") {
+    currentCountry = country;
     const yearContainer = d3.select("#year-checkboxes");
     yearContainer.html("");
 
@@ -259,5 +271,5 @@ export function updateRadarChart(data) {
         return;
     }
 
-    createRadarChart(data, selectedYears.sort((a, b) => a - b));
+    createRadarChart(data, selectedYears.sort((a, b) => a - b), currentCountry);
 }

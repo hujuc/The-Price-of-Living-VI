@@ -3,8 +3,30 @@
  * Handles loading and processing of CSV data
  */
 
-let hicpData = null;
-let incomeData = null;
+// Centralized country name mapping to handle datasets with different naming conventions
+const countryMappings = {
+    "Portugal": { pordata: "Portugal", eurostat: "Portugal", display: "Portugal" },
+    "Espanha": { pordata: "Espanha", eurostat: "Spain", display: "Espanha" },
+    "Spain": { pordata: "Espanha", eurostat: "Spain", display: "Espanha" },
+    "França": { pordata: "França", eurostat: "France", display: "França" },
+    "France": { pordata: "França", eurostat: "France", display: "França" },
+    "Alemanha": { pordata: "Alemanha", eurostat: "Germany", display: "Alemanha" },
+    "Germany": { pordata: "Alemanha", eurostat: "Germany", display: "Alemanha" }
+};
+
+function getPordataCountryName(country) {
+    if (!country) {
+        return null;
+    }
+    return countryMappings[country]?.pordata || country;
+}
+
+function getEurostatCountryName(country) {
+    if (!country) {
+        return null;
+    }
+    return countryMappings[country]?.eurostat || country;
+}
 
 /**
  * Load CSV data from file
@@ -23,13 +45,20 @@ export async function loadCSVData(filepath) {
 /**
  * Process inflation data from CSV
  * Groups data by category and year
+ * Optionally filters by country for multi-country datasets
  */
-export function processInflationData(data) {
-    // Group data by year and category
+export function processInflationData(data, country = null) {
+    const normalizedCountry = getPordataCountryName(country);
+
     const categories = new Set();
     const years = new Set();
 
     data.forEach(d => {
+        const countryColumn = d["02. Nome País (Europa)"] || d["02. Nome Região (Portugal)"];
+        if (normalizedCountry && countryColumn && countryColumn !== normalizedCountry) {
+            return;
+        }
+
         const year = +d["01. Ano"];
         const category = d["03. Filtro 1"];
         const value = parseFloat(d["08. Valor"]);
@@ -40,34 +69,36 @@ export function processInflationData(data) {
         }
     });
 
-    // Convert to sorted arrays
     const sortedYears = Array.from(years).sort((a, b) => a - b);
     const sortedCategories = Array.from(categories).sort();
 
-    // Create data structure for visualization
     const categoriesData = {};
 
-    sortedCategories.forEach(category => {
-        categoriesData[category] = {
-            name: category,
+    sortedCategories.forEach(categoryName => {
+        categoriesData[categoryName] = {
+            name: categoryName,
             values: []
         };
     });
 
     data.forEach(d => {
+        const countryColumn = d["02. Nome País (Europa)"] || d["02. Nome Região (Portugal)"];
+        if (normalizedCountry && countryColumn && countryColumn !== normalizedCountry) {
+            return;
+        }
+
         const year = +d["01. Ano"];
         const category = d["03. Filtro 1"];
         const value = parseFloat(d["08. Valor"]);
 
         if (!isNaN(year) && category && !isNaN(value) && categoriesData[category]) {
             categoriesData[category].values.push({
-                year: year,
-                value: value
+                year,
+                value
             });
         }
     });
 
-    // Sort values by year for each category
     Object.values(categoriesData).forEach(cat => {
         cat.values.sort((a, b) => a.year - b.year);
     });
@@ -80,16 +111,18 @@ export function processInflationData(data) {
 
 /**
  * Load and process inflation by categories data
+ * Supports both single-country and multi-country datasets
  */
-export async function loadInflationByCategories() {
+export async function loadInflationByCategories(country = "Portugal") {
     try {
-        const data = await loadCSVData("data/inflacao-categorias-portugal.csv");
+        // Use the multi-country dataset
+        const data = await loadCSVData("data/inflacao_portugal_europa.csv");
         if (!data) {
             throw new Error("Failed to load data");
         }
 
-        const processedData = processInflationData(data);
-        console.log("Processed data:", processedData);
+        const processedData = processInflationData(data, country);
+        console.log(`Processed data for ${country}:`, processedData);
         return processedData;
 
     } catch (error) {
@@ -99,31 +132,96 @@ export async function loadInflationByCategories() {
 }
 
 /**
- * Load and process minimum wage data
+ * Get list of available countries in the dataset
  */
-export async function loadMinimumWageData() {
+export async function getAvailableCountries() {
     try {
-        const data = await loadCSVData("data/salario-minimo-nacional.csv");
+        const data = await loadCSVData("data/inflacao_portugal_europa.csv");
         if (!data) {
-            throw new Error("Failed to load wage data");
+            return [];
         }
 
-        // Filter for main RMMG (Portugal continental) only
-        const wageData = {};
-
+        const countries = new Set();
         data.forEach(d => {
-            const year = +d["01. Ano"];
-            const indicator = d["03. Indicador"];
-            const value = parseFloat(d["09. Valor"]);
-
-            // Only use main RMMG for Portugal continental
-            if (!isNaN(year) && !isNaN(value) &&
-                indicator === "Retribuição mínima mensal garantida (RMMG) - Portugal continental") {
-                wageData[year] = value;
+            const country = d["02. Nome País (Europa)"];
+            if (country) {
+                countries.add(country);
             }
         });
 
-        console.log("Minimum wage data loaded:", Object.keys(wageData).length, "years");
+        return Array.from(countries).sort();
+    } catch (error) {
+        console.error("Error getting available countries:", error);
+        return [];
+    }
+}
+
+/**
+ * Load and process minimum wage data for a specific country
+ */
+export async function loadMinimumWageData(country = "Portugal") {
+    try {
+        const targetCountry = getPordataCountryName(country);
+
+        if (targetCountry === "Portugal") {
+            const nationalData = await loadCSVData("data/salario-minimo-nacional.csv");
+            if (!nationalData) {
+                throw new Error("Failed to load Portugal wage data");
+            }
+
+            const wageData = {};
+
+            nationalData.forEach(row => {
+                const indicator = row["03. Indicador"];
+                if (!indicator || !indicator.includes("Portugal continental")) {
+                    return;
+                }
+
+                const year = parseInt(row["01. Ano"]);
+                const valueStr = row["09. Valor"];
+                if (!year || !valueStr || valueStr === 'x' || valueStr === '-' || valueStr === '-,') {
+                    return;
+                }
+
+                const value = parseFloat(valueStr.replace(',', '.'));
+                if (isNaN(value)) {
+                    return;
+                }
+
+                wageData[year] = value;
+            });
+
+            console.log(`Minimum wage data loaded (Portugal):`, Object.keys(wageData).length, "years");
+            return wageData;
+        }
+
+        // Use the Europe-wide minimum wage dataset for other countries
+        const eurostatData = await loadCSVData("data/salario_minimo_europa.csv");
+        if (!eurostatData) {
+            throw new Error("Failed to load Eurostat wage data");
+        }
+
+        const wageData = {};
+        const eurostatCountry = getEurostatCountryName(country);
+
+        eurostatData.forEach(d => {
+            const geo = d["geo"];
+            const timePeriod = d["TIME_PERIOD"];
+            const obsValue = d["OBS_VALUE"];
+
+            if (geo === eurostatCountry && timePeriod && obsValue) {
+                const year = parseInt(timePeriod.split("-")[0]);
+                const value = parseFloat(obsValue);
+
+                if (!isNaN(year) && !isNaN(value)) {
+                    if (!wageData[year] || wageData[year] < value) {
+                        wageData[year] = value;
+                    }
+                }
+            }
+        });
+
+        console.log(`Minimum wage data loaded (${country}):`, Object.keys(wageData).length, "years");
         return wageData;
 
     } catch (error) {
@@ -176,11 +274,11 @@ export function calculateRealWage(nominalWage, inflationData, year, baseYear = 2
 /**
  * Prepare data for bullet graph comparison
  */
-export async function loadBulletGraphData() {
+export async function loadBulletGraphData(country = "Portugal") {
     try {
         const [wageData, inflationData] = await Promise.all([
-            loadMinimumWageData(),
-            loadInflationByCategories()
+            loadMinimumWageData(country),
+            loadInflationByCategories(country)
         ]);
 
         if (!wageData || !inflationData) {
@@ -193,24 +291,40 @@ export async function loadBulletGraphData() {
             .filter(year => year >= 1974) // Start from when we have wage data
             .sort((a, b) => a - b);
 
+        if (availableYears.length === 0) {
+            console.warn(`No wage data available for ${country}`);
+            return null;
+        }
+
+        const baseYear = availableYears.includes(2012) ? 2012 : availableYears[0];
+        const baseNominal = wageData[baseYear];
+
+        if (!baseNominal) {
+            console.warn(`Base year nominal wage missing for ${country} (year ${baseYear})`);
+        }
+
         const bulletData = {};
 
         availableYears.forEach(year => {
             const nominalWage = wageData[year];
-            const realWage = calculateRealWage(nominalWage, inflationData, year, 2012);
+            if (nominalWage == null) {
+                return;
+            }
+
+            const realWage = calculateRealWage(nominalWage, inflationData, year, baseYear);
 
             if (realWage !== null) {
                 bulletData[year] = {
-                    year: year,
+                    year,
                     nominal: nominalWage,
                     real: realWage,
-                    baseYear: 2012
+                    baseYear
                 };
             }
         });
 
-        console.log("Bullet graph data prepared for", Object.keys(bulletData).length, "years");
-        return { data: bulletData, years: availableYears };
+        console.log(`Bullet graph data prepared for ${country}:`, Object.keys(bulletData).length, "years (base year:", baseYear, ")");
+        return { data: bulletData, years: availableYears, baseYear, baseNominal };
 
     } catch (error) {
         console.error("Error loading bullet graph data:", error);
@@ -221,31 +335,27 @@ export async function loadBulletGraphData() {
 /**
  * Load and process HICP data for Europe choropleth map
  */
-export async function loadHICPData() {
-    if (hicpData) {
-        return hicpData;
-    }
-
+export async function loadHICPData(country = "Portugal") {
     try {
         const data = await loadCSVData('data/HICP.csv');
         if (!data) {
             return null;
         }
 
-        // Process data by year, country, and category
+        // Process data by year, country and category
         const processedData = {};
-        const countries = new Set();
         const years = new Set();
         const categories = new Set();
+        const countries = new Set();
 
         data.forEach(row => {
             const year = parseInt(row["01. Ano"]);
-            const country = row["02. Nome País (Europa)"];
+            const countryName = row["02. Nome País (Europa)"];
             const category = row["03. Filtro 1"];
             const valueStr = row["08. Valor"];
 
             // Skip invalid rows
-            if (!year || !country || !category || !valueStr || valueStr === 'x') {
+            if (!year || !category || !valueStr || valueStr === 'x') {
                 return;
             }
 
@@ -256,28 +366,29 @@ export async function loadHICPData() {
 
             // Add to sets
             years.add(year);
-            countries.add(country);
             categories.add(category);
+            countries.add(countryName);
 
-            // Create nested structure: year -> country -> category -> value
+            // Create nested structure: year -> category -> value
             if (!processedData[year]) {
                 processedData[year] = {};
             }
-            if (!processedData[year][country]) {
-                processedData[year][country] = {};
+            if (!processedData[year][countryName]) {
+                processedData[year][countryName] = {};
             }
-            processedData[year][country][category] = value;
+            processedData[year][countryName][category] = value;
         });
 
-        hicpData = {
+        const hicpDataForCountry = {
             data: processedData,
             years: Array.from(years).sort((a, b) => a - b),
+            categories: Array.from(categories).sort(),
             countries: Array.from(countries).sort(),
-            categories: Array.from(categories).sort()
+            selectedCountry: getPordataCountryName(country) || country
         };
 
-        console.log("HICP data loaded:", hicpData.years.length, "years,", hicpData.countries.length, "countries");
-        return hicpData;
+        console.log(`HICP data loaded for ${country}:`, hicpDataForCountry.years.length, "years");
+        return hicpDataForCountry;
 
     } catch (error) {
         console.error("Error loading HICP data:", error);
@@ -289,47 +400,45 @@ export async function loadHICPData() {
  * Load and process income share data for the poorest 40%
  * Combines with inflation data for scatter plot analysis
  */
-export async function loadIncomeAndInflationData() {
-    if (incomeData) {
-        return incomeData;
-    }
-
+export async function loadIncomeAndInflationData(country = "Portugal") {
     try {
+        const targetCountry = getPordataCountryName(country);
+
         // Load both datasets
         const [poorIncomeCSV, inflationData] = await Promise.all([
             loadCSVData('data/40-mais-pobres.csv'),
-            loadInflationByCategories()
+            loadInflationByCategories(country)
         ]);
 
         if (!poorIncomeCSV || !inflationData) {
             return null;
         }
 
-        // Process income data for Portugal
-        const portugalIncomeData = [];
-        const years = [];
+        // Process income data for selected country
+        const countryIncomeData = [];
+        const yearsSet = new Set();
 
         poorIncomeCSV.forEach(row => {
             const year = parseInt(row["01. Ano"]);
-            const country = row["02. Nome País (Europa)"];
+            const countryName = row["02. Nome País (Europa)"];
             const valueStr = row["09. Valor"];
 
-            if (country === "Portugal" && year && valueStr && valueStr !== 'x') {
+            if (countryName === targetCountry && year && valueStr && valueStr !== 'x') {
                 const incomeShare = parseFloat(valueStr);
                 if (!isNaN(incomeShare)) {
-                    portugalIncomeData.push({
+                    countryIncomeData.push({
                         year: year,
                         incomeShare: incomeShare
                     });
-                    years.push(year);
+                    yearsSet.add(year);
                 }
             }
         });
 
         // Sort by year
-        portugalIncomeData.sort((a, b) => a.year - b.year);
+        countryIncomeData.sort((a, b) => a.year - b.year);
 
-        // Get total inflation data for Portugal
+        // Get total inflation data for selected country
         const totalInflation = inflationData.categories.find(c => c.name === "Total");
         if (!totalInflation) {
             console.error("Total inflation data not found");
@@ -339,16 +448,14 @@ export async function loadIncomeAndInflationData() {
         // Combine data and calculate year-over-year variations
         const combinedData = [];
 
-        for (let i = 0; i < portugalIncomeData.length; i++) {
-            const currentYear = portugalIncomeData[i].year;
-            const incomeShare = portugalIncomeData[i].incomeShare;
+        for (let i = 0; i < countryIncomeData.length; i++) {
+            const currentYear = countryIncomeData[i].year;
+            const incomeShare = countryIncomeData[i].incomeShare;
 
             // Find inflation rate for current year
             const inflationRate = totalInflation.values.find(v => v.year === currentYear);
 
             // Calculate inflation variation (difference from previous year)
-            // IMPORTANT: Use actual previous year (currentYear - 1), not previous index
-            // because income data may have gaps (e.g., 2002, 2003 are missing)
             let inflationVariation = null;
             const prevYear = currentYear - 1;
             const prevInflation = totalInflation.values.find(v => v.year === prevYear);
@@ -360,7 +467,7 @@ export async function loadIncomeAndInflationData() {
             // Calculate income share variation (difference from previous year)
             let incomeVariation = null;
             if (i > 0) {
-                const prevIncomeData = portugalIncomeData[i - 1];
+                const prevIncomeData = countryIncomeData[i - 1];
                 // Only calculate if years are consecutive
                 if (prevIncomeData.year === currentYear - 1) {
                     incomeVariation = incomeShare - prevIncomeData.incomeShare;
@@ -378,13 +485,14 @@ export async function loadIncomeAndInflationData() {
             }
         }
 
-        incomeData = {
+        const incomeDataForCountry = {
             data: combinedData,
-            years: years.sort((a, b) => a - b)
+            years: Array.from(yearsSet).sort((a, b) => a - b),
+            country: targetCountry || country
         };
 
-        console.log("Income and inflation data combined:", incomeData.data.length, "data points");
-        return incomeData;
+        console.log(`Income and inflation data combined for ${country}:`, incomeDataForCountry.data.length, "data points");
+        return incomeDataForCountry;
 
     } catch (error) {
         console.error("Error loading income and inflation data:", error);

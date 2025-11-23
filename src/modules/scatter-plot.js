@@ -5,16 +5,28 @@
 
 let currentView = "variation"; // "variation" or "timeline"
 let scatterData = null;
+let currentCountry = "Portugal";
 
 /**
  * Create scatter plot with specified view
  */
-export function createScatterPlot(data, view = "variation") {
+export function createScatterPlot(data, view = "variation", country = "Portugal") {
     scatterData = data;
     currentView = view;
+    currentCountry = country;
 
     const container = d3.select("#viz-scatter-plot");
     container.selectAll("*").remove();
+
+    if (!scatterData || !Array.isArray(scatterData.data) || scatterData.data.length === 0) {
+        container.append("div")
+            .attr("class", "empty-message")
+            .style("text-align", "center")
+            .style("padding", "50px")
+            .style("color", "#7f8c8d")
+            .text("Sem dados suficientes para gerar esta visualização.");
+        return;
+    }
 
     const containerWidth = container.node().getBoundingClientRect().width;
     const margin = { top: 60, right: 40, bottom: 80, left: 80 };
@@ -43,6 +55,17 @@ function drawVariationView(svg, width, height, margin) {
     const plotData = scatterData.data.filter(d =>
         d.inflationVariation !== null && d.incomeVariation !== null
     );
+
+    if (plotData.length === 0) {
+        svg.append("text")
+            .attr("x", width / 2)
+            .attr("y", height / 2)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "14px")
+            .attr("fill", "#7f8c8d")
+            .text("Sem dados suficientes para analisar variações neste período.");
+        return;
+    }
 
     // Create scales
     const xExtent = d3.extent(plotData, d => d.inflationVariation);
@@ -202,6 +225,15 @@ function drawVariationView(svg, width, height, margin) {
         .attr("font-weight", "600")
         .text("↓ Rend. ↑ Infl.");
 
+    // Country name mapping for display
+    const countryNames = {
+        "Portugal": "Portugal",
+        "Espanha": "Espanha",
+        "France": "França",
+        "Alemanha": "Alemanha"
+    };
+    const displayCountry = countryNames[currentCountry] || currentCountry;
+
     // Add title
     svg.append("text")
         .attr("x", width / 2)
@@ -210,7 +242,7 @@ function drawVariationView(svg, width, height, margin) {
         .attr("font-size", "16px")
         .attr("font-weight", "bold")
         .attr("fill", "#2c3e50")
-        .text("Análise do Poder de Compra dos 40% Mais Pobres");
+        .text(`Análise do Poder de Compra dos 40% Mais Pobres - ${displayCountry}`);
 
     // Add subtitle
     svg.append("text")
@@ -240,6 +272,17 @@ function drawTimelineView(svg, width, height, margin) {
 
     // Filter data with valid purchasing power index
     const validData = dataWithPowerIndex.filter(d => d.purchasingPower !== null);
+
+    if (validData.length === 0) {
+        svg.append("text")
+            .attr("x", width / 2)
+            .attr("y", height / 2)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "14px")
+            .attr("fill", "#7f8c8d")
+            .text("Sem dados suficientes para construir a evolução temporal.");
+        return;
+    }
 
     // Create scales
     const xScale = d3.scaleLinear()
@@ -442,26 +485,27 @@ function drawTimelineView(svg, width, height, margin) {
 /**
  * Setup view toggle controls
  */
-export function setupScatterControls(data) {
+export function setupScatterControls(data, country = "Portugal") {
     scatterData = data;
+    currentCountry = country;
 
     const btnVariation = d3.select("#btn-scatter-variation");
     const btnTimeline = d3.select("#btn-scatter-timeline");
 
     // Initial view
-    createScatterPlot(data, "variation");
+    createScatterPlot(data, "variation", country);
 
     btnVariation.on("click", function() {
         btnVariation.classed("active", true);
         btnTimeline.classed("active", false);
-        createScatterPlot(scatterData, "variation");
+        createScatterPlot(scatterData, "variation", currentCountry);
         toggleDescriptions("variation");
     });
 
     btnTimeline.on("click", function() {
         btnVariation.classed("active", false);
         btnTimeline.classed("active", true);
-        createScatterPlot(scatterData, "timeline");
+        createScatterPlot(scatterData, "timeline", currentCountry);
         toggleDescriptions("timeline");
     });
 }

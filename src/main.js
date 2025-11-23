@@ -8,6 +8,7 @@ import { createInflationCategoriesChart } from './modules/line-chart.js';
 import { createRadarChart, setupYearSelection, updateRadarChart } from './modules/radar-chart.js';
 import { setupBulletYearSelector } from './modules/bullet-graph.js';
 import { createChoroplethMap, setupChoroplethControls } from './modules/choropleth-map.js';
+import { renderCountrySelectorMap, refreshCountrySelectorMap } from './modules/country-selector-map.js';
 import { createScatterPlot, setupScatterControls } from './modules/scatter-plot.js';
 import { initSmoothScroll } from './modules/utils.js';
 
@@ -26,8 +27,12 @@ document.addEventListener('DOMContentLoaded', function() {
  * Main application initialization
  */
 async function initializeApp() {
+    // Initialize with default country
+    window.currentCountry = "Portugal";
+    window.lastCountryChangeSource = "init";
+
     // Load and create inflation by categories visualization
-    await loadAndDisplayInflationData();
+    await loadAndDisplayInflationData(window.currentCountry);
 
     // Load and create bullet graph visualization
     await loadAndDisplayBulletGraph();
@@ -41,16 +46,20 @@ async function initializeApp() {
     // Setup navigation and controls
     initSmoothScroll();
     setupVisualizationControls();
+    setupCountrySelector();
+    updateCountryCardState(window.currentCountry);
+    await renderCountrySelectorMap();
+    refreshCountrySelectorMap(window.currentCountry);
 }
 
 /**
- * Load and display inflation data (line chart by default)
+ * Load and display inflation data for a specific country
  */
-async function loadAndDisplayInflationData() {
+async function loadAndDisplayInflationData(country = "Portugal") {
     try {
-        const data = await loadInflationByCategories();
+        const data = await loadInflationByCategories(country);
         if (data) {
-            createInflationCategoriesChart(data);
+            createInflationCategoriesChart(data, country);
         } else {
             d3.select("#viz-inflation-categories")
                 .html("<div style='text-align: center; padding: 50px; color: #e74c3c;'><p>Erro ao carregar dados</p></div>");
@@ -63,11 +72,11 @@ async function loadAndDisplayInflationData() {
 /**
  * Load and display bullet graph data
  */
-async function loadAndDisplayBulletGraph() {
+async function loadAndDisplayBulletGraph(country = "Portugal") {
     try {
-        const bulletData = await loadBulletGraphData();
+        const bulletData = await loadBulletGraphData(country);
         if (bulletData) {
-            setupBulletYearSelector(bulletData);
+            setupBulletYearSelector(bulletData, country);
         } else {
             d3.select("#viz-bullet-graph")
                 .html("<div style='text-align: center; padding: 50px; color: #e74c3c;'><p>Erro ao carregar dados do salário</p></div>");
@@ -80,12 +89,12 @@ async function loadAndDisplayBulletGraph() {
 /**
  * Load and display choropleth map
  */
-async function loadAndDisplayChoroplethMap() {
+async function loadAndDisplayChoroplethMap(country = "Portugal") {
     try {
-        const hicpData = await loadHICPData();
+        const hicpData = await loadHICPData(country);
         if (hicpData) {
-            setupChoroplethControls(hicpData);
-            await createChoroplethMap(hicpData);
+            setupChoroplethControls(hicpData, country);
+            await createChoroplethMap(hicpData, country);
         } else {
             d3.select("#viz-choropleth-map")
                 .html("<div style='text-align: center; padding: 50px; color: #e74c3c;'><p>Erro ao carregar dados HICP</p></div>");
@@ -97,14 +106,67 @@ async function loadAndDisplayChoroplethMap() {
     }
 }
 
+let isChangingCountry = false;
+
+async function changeCountry(selectedCountry, options = {}) {
+    const targetCountry = selectedCountry || "Portugal";
+
+    if (isChangingCountry) {
+        return;
+    }
+
+    if (!options.force && window.currentCountry === targetCountry) {
+        updateCountryCardState(targetCountry);
+        return;
+    }
+
+    isChangingCountry = true;
+
+    window.lastCountryChangeSource = options.source || "unknown";
+
+    console.debug("[changeCountry] triggered", {
+        targetCountry,
+        source: window.lastCountryChangeSource,
+        previousCountry: window.currentCountry
+    });
+
+    window.currentCountry = targetCountry;
+    updateCountryCardState(targetCountry);
+    refreshCountrySelectorMap(targetCountry);
+
+    try {
+        await loadAndDisplayInflationData(targetCountry);
+        await loadAndDisplayBulletGraph(targetCountry);
+        await loadAndDisplayChoroplethMap(targetCountry);
+        await loadAndDisplayScatterPlot(targetCountry);
+    } finally {
+        console.debug("[changeCountry] completed", {
+            targetCountry,
+            source: window.lastCountryChangeSource
+        });
+        isChangingCountry = false;
+    }
+}
+
+function updateCountryCardState(selectedCountry) {
+    const countryCards = d3.selectAll(".country-card");
+    if (countryCards.empty()) {
+        return;
+    }
+
+    countryCards.classed("active", function() {
+        return d3.select(this).attr("data-country") === selectedCountry;
+    });
+}
+
 /**
  * Load and display scatter plot
  */
-async function loadAndDisplayScatterPlot() {
+async function loadAndDisplayScatterPlot(country = "Portugal") {
     try {
-        const scatterData = await loadIncomeAndInflationData();
+        const scatterData = await loadIncomeAndInflationData(country);
         if (scatterData) {
-            setupScatterControls(scatterData);
+            setupScatterControls(scatterData, country);
         } else {
             d3.select("#viz-scatter-plot")
                 .html("<div style='text-align: center; padding: 50px; color: #e74c3c;'><p>Erro ao carregar dados de rendimento e inflação</p></div>");
@@ -125,14 +187,14 @@ function setupVisualizationControls() {
     const yearSelectionContainer = d3.select("#year-selection-container");
     const categoryFilterContainer = d3.select("#category-filter-container");
 
-    let cachedData = null;
+    let cachedData = {};
 
-    // Load data once and cache it
-    async function getCachedData() {
-        if (!cachedData) {
-            cachedData = await loadInflationByCategories();
+    // Load data once and cache it per country
+    async function getCachedData(country) {
+        if (!cachedData[country]) {
+            cachedData[country] = await loadInflationByCategories(country);
         }
-        return cachedData;
+        return cachedData[country];
     }
 
     // Timeline view button
@@ -142,9 +204,9 @@ function setupVisualizationControls() {
         yearSelectionContainer.style("display", "none");
         categoryFilterContainer.style("display", "block");
 
-        const data = await getCachedData();
+        const data = await getCachedData(window.currentCountry);
         if (data) {
-            createInflationCategoriesChart(data);
+            createInflationCategoriesChart(data, window.currentCountry);
         }
     });
 
@@ -155,10 +217,22 @@ function setupVisualizationControls() {
         yearSelectionContainer.style("display", "block");
         categoryFilterContainer.style("display", "none");
 
-        const data = await getCachedData();
+        const data = await getCachedData(window.currentCountry);
         if (data) {
-            setupYearSelection(data, updateRadarChart);
+            setupYearSelection(data, updateRadarChart, window.currentCountry);
         }
+    });
+}
+
+/**
+ * Setup country selector
+ */
+function setupCountrySelector() {
+    const countryCards = d3.selectAll(".country-card");
+
+    countryCards.on("click", async function() {
+        const selectedCountry = d3.select(this).attr("data-country");
+        await changeCountry(selectedCountry);
     });
 }
 
@@ -170,3 +244,5 @@ window.visualizations = {
     createChoroplethMap,
     createScatterPlot
 };
+
+window.changeCountry = changeCountry;

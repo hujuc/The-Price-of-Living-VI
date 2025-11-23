@@ -47,6 +47,25 @@
         </div>
     </header>
 
+    <!-- Global Country Selector Section -->
+    <section id="country-selector" class="section country-selector-section">
+        <div class="container">
+            <div class="selector-header">
+                <h2>Selecione um País</h2>
+                <p>Explore como a inflação afeta diferentes países europeus</p>
+            </div>
+            <div class="selector-hint">
+                <svg class="hint-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2Z" stroke="currentColor" stroke-width="2"/>
+                    <path d="M10 6V10L13 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Clique no mapa para escolher o país que quer analisar; os gráficos abaixo seguem imediatamente a seleção.
+            </div>
+            
+            <div class="country-selector-map" id="country-selector-map"></div>
+        </div>
+    </section>
+
     <!-- Introduction Section -->
     <section id="introduction" class="section">
         <div class="container">
@@ -117,10 +136,10 @@
             <div class="visualization-container">
                 <h3>Taxa de Inflação por Bens e Serviços</h3>
                 <p class="viz-description">
-                    Evolução da taxa de inflação em Portugal por diferentes categorias de bens e serviços desde 1960.
+                    Evolução da taxa de inflação por diferentes categorias de bens e serviços desde 1996.
                 </p>
                 <p class="viz-source">
-                    <strong>Fonte:</strong> <a href="https://www.pordata.pt/pt/estatisticas/inflacao/taxa-de-inflacao/taxa-de-inflacao-por-bens-e-servicos-portugal" target="_blank" rel="noopener noreferrer">Pordata - Taxa de Inflação por Bens e Serviços (Portugal)</a>
+                    <strong>Fonte:</strong> <a href="https://www.pordata.pt/pt/estatisticas/inflacao/taxa-de-inflacao/taxa-de-inflacao-por-bens-e-servicos-portugal" target="_blank" rel="noopener noreferrer">Pordata - Taxa de Inflação por Bens e Serviços (Europa)</a>
                 </p>
 
                 <!-- Visualization Mode Buttons -->
@@ -181,6 +200,8 @@
                         <select id="map-category-select" class="map-select"></select>
                     </div>
                 </div>
+
+                <div id="map-country-summary" class="map-country-summary"></div>
 
                 <div id="viz-choropleth-map" class="viz-canvas"></div>
             </div>

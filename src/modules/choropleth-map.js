@@ -1,3 +1,5 @@
+import { countryNameMap } from './country-name-map.js';
+
 /**
  * Choropleth Map Module
  * Creates an interactive Europe map showing HICP inflation data
@@ -5,53 +7,169 @@
 
 let currentYear = 2024;
 let currentCategory = "Total";
+let currentCountry = "Portugal";
 let hicpData = null;
 let svg = null;
 let projection = null;
 let path = null;
 let colorScale = null;
 let tooltip = null;
+let selectedCountryValue = null;
+let colorScaleMode = "sequential";
+let maxDifference = 0;
 
-// Country name mapping from Portuguese to English (for TopoJSON matching)
-const countryNameMap = {
-    "Alemanha": "Germany",
-    "Áustria": "Austria",
-    "Bélgica": "Belgium",
-    "Bulgária": "Bulgaria",
-    "Chipre": "Cyprus",
-    "Croácia": "Croatia",
-    "Dinamarca": "Denmark",
-    "Eslováquia": "Slovakia",
-    "Eslovénia": "Slovenia",
-    "Espanha": "Spain",
-    "Estónia": "Estonia",
-    "Finlândia": "Finland",
-    "França": "France",
-    "Grécia": "Greece",
-    "Hungria": "Hungary",
-    "Irlanda": "Ireland",
-    "Islândia": "Iceland",
-    "Itália": "Italy",
-    "Letónia": "Latvia",
-    "Lituânia": "Lithuania",
-    "Luxemburgo": "Luxembourg",
-    "Malta": "Malta",
-    "Noruega": "Norway",
-    "Países Baixos": "Netherlands",
-    "Polónia": "Poland",
-    "Portugal": "Portugal",
-    "Reino Unido": "United Kingdom",
-    "República Checa": "Czechia",
-    "Roménia": "Romania",
-    "Suécia": "Sweden",
-    "Suíça": "Switzerland"
-};
+function resolveDatasetCountryName(country) {
+    if (!country || !hicpData?.countries) {
+        return country;
+    }
+
+    if (hicpData.countries.includes(country)) {
+        return country;
+    }
+
+    for (const [portuguese, english] of Object.entries(countryNameMap)) {
+        if (country === portuguese && hicpData.countries.includes(portuguese)) {
+            return portuguese;
+        }
+        if (country === english && hicpData.countries.includes(portuguese)) {
+            return portuguese;
+        }
+    }
+
+    return country;
+}
+
+function getSelectedCountryNames() {
+    const datasetName = resolveDatasetCountryName(currentCountry) || currentCountry;
+    const englishName = countryNameMap[datasetName] || datasetName;
+
+    return {
+        dataset: datasetName,
+        english: englishName,
+        display: datasetName
+    };
+}
+
+function isFeatureSelected(feature) {
+    const { english } = getSelectedCountryNames();
+    return feature?.properties?.name === english;
+}
+
+function updateSelectedCountryHighlight() {
+    if (!svg) {
+        return;
+    }
+
+    svg.selectAll(".country")
+        .classed("selected-country", d => isFeatureSelected(d));
+}
+
+function updateCountrySummary() {
+    const summaryContainer = d3.select("#map-country-summary");
+    if (summaryContainer.empty()) {
+        return;
+    }
+
+    if (!hicpData?.data || !hicpData.data[currentYear]) {
+        summaryContainer
+            .attr("class", "map-country-summary empty")
+            .text("Sem dados para apresentar.");
+        return;
+    }
+
+    const { dataset, display } = getSelectedCountryNames();
+    const yearData = hicpData.data[currentYear];
+    const countryData = yearData?.[dataset];
+    const value = countryData?.[currentCategory];
+
+    const values = [];
+    const diffs = [];
+    let minDiff = null;
+    let maxDiff = null;
+    let minDiffCountry = null;
+    let maxDiffCountry = null;
+
+    Object.entries(yearData).forEach(([countryName, countryEntry]) => {
+        const v = countryEntry?.[currentCategory];
+        if (v != null && !isNaN(v)) {
+            values.push(v);
+            if (colorScaleMode === "difference" && selectedCountryValue != null) {
+                const diffVal = v - selectedCountryValue;
+                diffs.push(diffVal);
+                if (minDiff === null || diffVal < minDiff) {
+                    minDiff = diffVal;
+                    minDiffCountry = countryName;
+                }
+                if (maxDiff === null || diffVal > maxDiff) {
+                    maxDiff = diffVal;
+                    maxDiffCountry = countryName;
+                }
+            }
+        }
+    });
+
+    if (value == null || isNaN(value)) {
+        summaryContainer
+            .attr("class", "map-country-summary empty")
+            .text(`Sem dados para ${display} em ${currentYear}.`);
+        return;
+    }
+
+    const minValue = values.length ? d3.min(values) : null;
+    const maxValue = values.length ? d3.max(values) : null;
+    const mean = values.length ? d3.mean(values) : null;
+
+    summaryContainer
+        .attr("class", "map-country-summary")
+        .html(`
+            <div class="summary-title">${display}</div>
+            <div class="summary-metric">
+                <span class="summary-label">${currentCategory}</span>
+                <span class="summary-value">${value.toFixed(1)}</span>
+                <span class="summary-context">Ano ${currentYear}</span>
+            </div>
+            <div class="summary-metric">
+                <span class="summary-label">Comparação Europa</span>
+                <span class="summary-value">
+                    ${colorScaleMode === "difference" && minDiff !== null && maxDiff !== null
+                        ? `${minDiff.toFixed(1)} → ${maxDiff.toFixed(1)}`
+                        : `${minValue != null ? minValue.toFixed(1) : '—'} → ${maxValue != null ? maxValue.toFixed(1) : '—'}`}
+                </span>
+                <span class="summary-context">
+                    ${colorScaleMode === "difference" && minDiffCountry && maxDiffCountry
+                        ? `${minDiffCountry} abaixo | ${maxDiffCountry} acima`
+                        : 'Intervalo europeu'}
+                </span>
+            </div>
+            <div class="summary-metric">
+                <span class="summary-label">Média Europeia</span>
+                <span class="summary-value">${mean != null ? mean.toFixed(1) : '—'}</span>
+                <span class="summary-context">Índice HICP médio</span>
+            </div>
+        `);
+}
+
 
 /**
  * Create choropleth map
  */
-export async function createChoroplethMap(data) {
+export async function createChoroplethMap(data, country = "Portugal") {
     hicpData = data;
+    currentCountry = country;
+
+    if (!hicpData || !hicpData.years?.length || !hicpData.categories?.length) {
+        d3.select("#viz-choropleth-map")
+            .html("<div style='text-align: center; padding: 50px; color: #e74c3c;'><p>Sem dados disponíveis para o mapa.</p></div>");
+        return;
+    }
+
+    if (!hicpData.years.includes(currentYear)) {
+        currentYear = hicpData.years[hicpData.years.length - 1];
+    }
+
+    if (!hicpData.categories.includes(currentCategory)) {
+        currentCategory = hicpData.categories[0];
+    }
 
     const container = d3.select("#viz-choropleth-map");
     container.selectAll("*").remove();
@@ -79,6 +197,7 @@ export async function createChoroplethMap(data) {
     updateColorScale();
 
     // Create tooltip
+    d3.selectAll(".map-tooltip").remove();
     tooltip = d3.select("body").append("div")
         .attr("class", "map-tooltip")
         .style("opacity", 0);
@@ -139,19 +258,26 @@ function drawMap(geoData) {
         .enter()
         .append("path")
         .attr("d", path)
-        .attr("class", "country")
+            .attr("class", "country")
+            .classed("selected-country", d => isFeatureSelected(d))
         .attr("fill", d => getCountryColor(d))
         .attr("stroke", "#fff")
         .attr("stroke-width", 1)
+        .style("cursor", "pointer")
         .on("mouseover", handleMouseOver)
         .on("mousemove", handleMouseMove)
-        .on("mouseout", handleMouseOut);
+        .on("mouseout", handleMouseOut)
+        .on("click", handleCountryClick);
 }
 
 /**
  * Get color for a country based on current data
  */
 function getCountryColor(feature) {
+    if (!colorScale) {
+        return "#e0e0e0";
+    }
+
     const countryName = getCountryName(feature);
     if (!countryName) {
         return "#e0e0e0";
@@ -166,6 +292,9 @@ function getCountryColor(feature) {
     if (!value) {
         return "#e0e0e0";
     }
+    if (colorScaleMode === "difference" && selectedCountryValue != null) {
+        return colorScale(value - selectedCountryValue);
+    }
 
     return colorScale(value);
 }
@@ -174,6 +303,10 @@ function getCountryColor(feature) {
  * Try to match country name from GeoJSON to our data
  */
 function getCountryName(feature) {
+    if (!hicpData?.countries?.length) {
+        return null;
+    }
+
     const name = feature.properties.name;
 
     // Check if it's a direct match (English name)
@@ -191,12 +324,31 @@ function getCountryName(feature) {
     return null;
 }
 
+function handleCountryClick(event, feature) {
+    const countryName = getCountryName(feature);
+    if (!countryName) {
+        return;
+    }
+
+    if (typeof window !== "undefined" && typeof window.changeCountry === "function") {
+        window.changeCountry(countryName);
+    } else {
+        currentCountry = countryName;
+        updateColorScale();
+        updateSelectedCountryHighlight();
+        updateCountrySummary();
+    }
+}
+
 /**
  * Update color scale based on current data range
  */
 function updateColorScale() {
     const yearData = hicpData.data[currentYear];
     if (!yearData) {
+        colorScale = null;
+        selectedCountryValue = null;
+        colorScaleMode = "sequential";
         return;
     }
 
@@ -208,12 +360,48 @@ function updateColorScale() {
         }
     });
 
-    const min = d3.min(values);
-    const max = d3.max(values);
+    if (values.length === 0) {
+        colorScale = d3.scaleSequential()
+            .domain([0, 1])
+            .interpolator(d3.interpolateGreys);
+        return;
+    }
+
+    const sequentialMin = d3.min(values);
+    const sequentialMax = d3.max(values);
 
     // Use a color scheme from light to dark red/orange
+    const { dataset } = getSelectedCountryNames();
+    const baseValue = yearData?.[dataset]?.[currentCategory];
+
+    const diffs = [];
+
+    Object.values(yearData).forEach(countryData => {
+        const value = countryData[currentCategory];
+        if (value != null && !isNaN(value) && baseValue != null && !isNaN(baseValue)) {
+            diffs.push(value - baseValue);
+        }
+    });
+
+    if (baseValue != null && !isNaN(baseValue) && diffs.length) {
+        const maxAbs = d3.max(diffs.map(d => Math.abs(d)));
+
+        if (maxAbs && maxAbs > 0) {
+            selectedCountryValue = baseValue;
+            maxDifference = maxAbs;
+            colorScaleMode = "difference";
+            colorScale = d3.scaleDiverging()
+                .domain([-maxAbs, 0, maxAbs])
+                .interpolator(t => d3.interpolateRdYlGn(1 - t))
+                .clamp(true);
+            return;
+        }
+    }
+
+    selectedCountryValue = null;
+    colorScaleMode = "sequential";
     colorScale = d3.scaleSequential()
-        .domain([min, max])
+        .domain([sequentialMin, sequentialMax])
         .interpolator(d3.interpolateYlOrRd);
 }
 
@@ -232,6 +420,10 @@ function handleMouseOver(event, d) {
 
     const yearData = hicpData.data[currentYear];
     const value = yearData?.[countryName]?.[currentCategory];
+    const diff = (colorScaleMode === "difference" && selectedCountryValue != null && value != null && !isNaN(value))
+        ? value - selectedCountryValue
+        : null;
+    const { display } = getSelectedCountryNames();
 
     tooltip.transition()
         .duration(200)
@@ -244,6 +436,7 @@ function handleMouseOver(event, d) {
         <span style="color: #e74c3c; font-weight: bold;">
             Índice: ${value ? value.toFixed(1) : 'N/A'}
         </span>
+        ${diff !== null ? `<br/><span style="color: ${diff > 0 ? '#e74c3c' : '#27ae60'}; font-weight: 600;">${diff > 0 ? '+' : ''}${diff.toFixed(1)} vs ${display}</span>` : ''}
     `);
 }
 
@@ -267,6 +460,10 @@ function handleMouseOut(event) {
  * Add legend to the map
  */
 function addLegend() {
+    if (!colorScale) {
+        return;
+    }
+
     const legendWidth = 300;
     const legendHeight = 20;
     const svgWidth = parseInt(svg.attr("width"));
@@ -282,11 +479,23 @@ function addLegend() {
     const gradient = defs.append("linearGradient")
         .attr("id", "legend-gradient");
 
-    const numStops = 10;
-    for (let i = 0; i <= numStops; i++) {
-        gradient.append("stop")
-            .attr("offset", `${(i / numStops) * 100}%`)
-            .attr("stop-color", colorScale.interpolator()(i / numStops));
+    if (colorScaleMode === "difference") {
+        const [minDiff, , maxDiff] = colorScale.domain();
+        const steps = 20;
+        for (let i = 0; i <= steps; i++) {
+            const t = i / steps;
+            const value = minDiff + (maxDiff - minDiff) * t;
+            gradient.append("stop")
+                .attr("offset", `${t * 100}%`)
+                .attr("stop-color", colorScale(value));
+        }
+    } else {
+        const numStops = 10;
+        for (let i = 0; i <= numStops; i++) {
+            gradient.append("stop")
+                .attr("offset", `${(i / numStops) * 100}%`)
+                .attr("stop-color", colorScale.interpolator()(i / numStops));
+        }
     }
 
     // Draw legend rectangle
@@ -295,32 +504,77 @@ function addLegend() {
         .attr("height", legendHeight)
         .style("fill", "url(#legend-gradient)");
 
-    // Add legend labels
-    const [min, max] = colorScale.domain();
+    if (colorScaleMode === "difference") {
+        const [minDiff, , maxDiff] = colorScale.domain();
+        const { display } = getSelectedCountryNames();
 
-    legendGroup.append("text")
-        .attr("x", 0)
-        .attr("y", legendHeight + 15)
-        .attr("font-size", "11px")
-        .attr("fill", "#333")
-        .text(min.toFixed(0));
+        legendGroup.append("text")
+            .attr("x", 0)
+            .attr("y", legendHeight + 15)
+            .attr("font-size", "11px")
+            .attr("fill", "#27ae60")
+            .text(`${minDiff.toFixed(1)} (mais baixo)`);
 
-    legendGroup.append("text")
-        .attr("x", legendWidth)
-        .attr("y", legendHeight + 15)
-        .attr("text-anchor", "end")
-        .attr("font-size", "11px")
-        .attr("fill", "#333")
-        .text(max.toFixed(0));
+        legendGroup.append("text")
+            .attr("x", legendWidth)
+            .attr("y", legendHeight + 15)
+            .attr("text-anchor", "end")
+            .attr("font-size", "11px")
+            .attr("fill", "#e74c3c")
+            .text(`${maxDiff.toFixed(1)} (mais alto)`);
 
-    legendGroup.append("text")
-        .attr("x", legendWidth / 2)
-        .attr("y", -5)
-        .attr("text-anchor", "middle")
-        .attr("font-size", "11px")
-        .attr("font-weight", "600")
-        .attr("fill", "#333")
-        .text("Índice HICP");
+        legendGroup.append("line")
+            .attr("x1", legendWidth / 2)
+            .attr("x2", legendWidth / 2)
+            .attr("y1", 0)
+            .attr("y2", legendHeight)
+            .attr("stroke", "#2c3e50")
+            .attr("stroke-width", 1)
+            .attr("stroke-dasharray", "4,3");
+
+        legendGroup.append("text")
+            .attr("x", legendWidth / 2)
+            .attr("y", legendHeight + 15)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "11px")
+            .attr("fill", "#34495e")
+            .text("0");
+
+        legendGroup.append("text")
+            .attr("x", legendWidth / 2)
+            .attr("y", -5)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "11px")
+            .attr("font-weight", "600")
+            .attr("fill", "#333")
+            .text(`Diferença vs ${display}`);
+    } else {
+        const [minValue, maxValue] = colorScale.domain();
+
+        legendGroup.append("text")
+            .attr("x", 0)
+            .attr("y", legendHeight + 15)
+            .attr("font-size", "11px")
+            .attr("fill", "#333")
+            .text(minValue.toFixed(0));
+
+        legendGroup.append("text")
+            .attr("x", legendWidth)
+            .attr("y", legendHeight + 15)
+            .attr("text-anchor", "end")
+            .attr("font-size", "11px")
+            .attr("fill", "#333")
+            .text(maxValue.toFixed(0));
+
+        legendGroup.append("text")
+            .attr("x", legendWidth / 2)
+            .attr("y", -5)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "11px")
+            .attr("font-weight", "600")
+            .attr("fill", "#333")
+            .text("Índice HICP");
+    }
 }
 
 /**
@@ -333,6 +587,10 @@ export function updateChoroplethMap(year, category) {
     updateColorScale();
 
     // Update country colors
+    if (!svg) {
+        return;
+    }
+
     svg.selectAll(".country")
         .transition()
         .duration(500)
@@ -345,16 +603,28 @@ export function updateChoroplethMap(year, category) {
     }).remove();
 
     addLegend();
+    updateSelectedCountryHighlight();
+    updateCountrySummary();
 }
 
 /**
  * Setup year and category selectors
  */
-export function setupChoroplethControls(data) {
+export function setupChoroplethControls(data, country = "Portugal") {
     hicpData = data;
+    currentCountry = country;
+
+    if (hicpData.years?.length && !hicpData.years.includes(currentYear)) {
+        currentYear = hicpData.years[hicpData.years.length - 1];
+    }
+
+    if (hicpData.categories?.length && !hicpData.categories.includes(currentCategory)) {
+        currentCategory = hicpData.categories[0];
+    }
 
     // Year selector
     const yearSelect = d3.select("#map-year-select");
+    yearSelect.selectAll("option").remove();
     yearSelect.selectAll("option")
         .data(data.years)
         .enter()
@@ -363,6 +633,8 @@ export function setupChoroplethControls(data) {
         .text(d => d)
         .property("selected", d => d === currentYear);
 
+    yearSelect.property("value", currentYear);
+
     yearSelect.on("change", function() {
         currentYear = +this.value;
         updateChoroplethMap(currentYear, currentCategory);
@@ -370,6 +642,7 @@ export function setupChoroplethControls(data) {
 
     // Category selector
     const categorySelect = d3.select("#map-category-select");
+    categorySelect.selectAll("option").remove();
     categorySelect.selectAll("option")
         .data(data.categories)
         .enter()
@@ -378,8 +651,11 @@ export function setupChoroplethControls(data) {
         .text(d => d)
         .property("selected", d => d === currentCategory);
 
+    categorySelect.property("value", currentCategory);
+
     categorySelect.on("change", function() {
         currentCategory = this.value;
         updateChoroplethMap(currentYear, currentCategory);
     });
+    updateCountrySummary();
 }
