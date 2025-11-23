@@ -122,29 +122,54 @@ function updateCountrySummary() {
     summaryContainer
         .attr("class", "map-country-summary")
         .html(`
-            <div class="summary-title">${display}</div>
-            <div class="summary-metric">
-                <span class="summary-label">${currentCategory}</span>
-                <span class="summary-value">${value.toFixed(1)}</span>
-                <span class="summary-context">Ano ${currentYear}</span>
+            <div class="summary-header">
+                <div class="summary-title">${display}</div>
+                <div class="summary-year-badge">${currentYear}</div>
             </div>
-            <div class="summary-metric">
-                <span class="summary-label">Comparação Europa</span>
-                <span class="summary-value">
-                    ${colorScaleMode === "difference" && minDiff !== null && maxDiff !== null
-                        ? `${minDiff.toFixed(1)} → ${maxDiff.toFixed(1)}`
-                        : `${minValue != null ? minValue.toFixed(1) : '—'} → ${maxValue != null ? maxValue.toFixed(1) : '—'}`}
-                </span>
-                <span class="summary-context">
-                    ${colorScaleMode === "difference" && minDiffCountry && maxDiffCountry
-                        ? `${minDiffCountry} abaixo | ${maxDiffCountry} acima`
-                        : 'Intervalo europeu'}
-                </span>
+            
+            <div class="summary-main-metric">
+                <div class="metric-category">${currentCategory}</div>
+                <div class="metric-value-large">${value.toFixed(1)}</div>
+                <div class="metric-unit">Índice HICP</div>
             </div>
-            <div class="summary-metric">
-                <span class="summary-label">Média Europeia</span>
-                <span class="summary-value">${mean != null ? mean.toFixed(1) : '—'}</span>
-                <span class="summary-context">Índice HICP médio</span>
+            
+            <div class="summary-comparison">
+                <div class="comparison-item">
+                    <svg class="comparison-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M10 3v14M10 3l-4 4M10 3l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <div class="comparison-content">
+                        <div class="comparison-label">Intervalo Europeu</div>
+                        <div class="comparison-value">
+                            ${colorScaleMode === "difference" && minDiff !== null && maxDiff !== null
+                                ? `<span class="range-min">${minDiff.toFixed(1)}</span> <span class="range-arrow">→</span> <span class="range-max">${maxDiff.toFixed(1)}</span>`
+                                : `<span class="range-min">${minValue != null ? minValue.toFixed(1) : '—'}</span> <span class="range-arrow">→</span> <span class="range-max">${maxValue != null ? maxValue.toFixed(1) : '—'}</span>`}
+                        </div>
+                        <div class="comparison-detail">
+                            ${colorScaleMode === "difference" && minDiffCountry && maxDiffCountry
+                                ? `${minDiffCountry} (menor) • ${maxDiffCountry} (maior)`
+                                : 'Amplitude de valores na Europa'}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="comparison-item">
+                    <svg class="comparison-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="2"/>
+                        <path d="M10 6v4l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <div class="comparison-content">
+                        <div class="comparison-label">Média Europeia</div>
+                        <div class="comparison-value">${mean != null ? mean.toFixed(1) : '—'}</div>
+                        <div class="comparison-detail">
+                            ${value != null && mean != null 
+                                ? (value > mean 
+                                    ? `+${(value - mean).toFixed(1)} acima da média`
+                                    : `${(value - mean).toFixed(1)} abaixo da média`)
+                                : 'Referência continental'}
+                        </div>
+                    </div>
+                </div>
             </div>
         `);
 }
@@ -266,8 +291,7 @@ function drawMap(geoData) {
         .style("cursor", "pointer")
         .on("mouseover", handleMouseOver)
         .on("mousemove", handleMouseMove)
-        .on("mouseout", handleMouseOut)
-        .on("click", handleCountryClick);
+        .on("mouseout", handleMouseOut);
 }
 
 /**
@@ -322,22 +346,6 @@ function getCountryName(feature) {
     }
 
     return null;
-}
-
-function handleCountryClick(event, feature) {
-    const countryName = getCountryName(feature);
-    if (!countryName) {
-        return;
-    }
-
-    if (typeof window !== "undefined" && typeof window.changeCountry === "function") {
-        window.changeCountry(countryName);
-    } else {
-        currentCountry = countryName;
-        updateColorScale();
-        updateSelectedCountryHighlight();
-        updateCountrySummary();
-    }
 }
 
 /**

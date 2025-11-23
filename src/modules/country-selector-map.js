@@ -147,29 +147,26 @@ export async function renderCountrySelectorMap() {
             target.transition().duration(200)
                 .attr('fill', hoverCountryFill)
                 .attr('stroke-width', 2)
-                .attr('opacity', 0.9);
+                .attr('opacity', 0.95);
 
             tooltip.transition().duration(200).style('opacity', 1);
             tooltip.html(`<strong>${getFeatureCountryName(d) || 'País'}</strong>`);
-            
-            // Smart tooltip positioning
+
             const tooltipNode = tooltip.node();
             const tooltipWidth = tooltipNode.offsetWidth;
             const tooltipHeight = tooltipNode.offsetHeight;
             const windowWidth = window.innerWidth;
-            const windowHeight = window.innerHeight;
-            
+
             let left = event.clientX + 15;
-            let top = event.clientY - tooltipHeight - 10;
-            
-            // Keep tooltip within window bounds
-            if (left + tooltipWidth > windowWidth - 20) {
+            let top = event.clientY - tooltipHeight - 12;
+
+            if (left + tooltipWidth > windowWidth - 16) {
                 left = event.clientX - tooltipWidth - 15;
             }
-            if (top < 20) {
+            if (top < 12) {
                 top = event.clientY + 15;
             }
-            
+
             tooltip.style('left', left + 'px')
                 .style('top', top + 'px');
         })
@@ -178,27 +175,25 @@ export async function renderCountrySelectorMap() {
             const tooltipWidth = tooltipNode.offsetWidth;
             const tooltipHeight = tooltipNode.offsetHeight;
             const windowWidth = window.innerWidth;
-            const windowHeight = window.innerHeight;
-            
+
             let left = event.clientX + 15;
-            let top = event.clientY - tooltipHeight - 10;
-            
-            // Keep tooltip within window bounds
-            if (left + tooltipWidth > windowWidth - 20) {
+            let top = event.clientY - tooltipHeight - 12;
+
+            if (left + tooltipWidth > windowWidth - 16) {
                 left = event.clientX - tooltipWidth - 15;
             }
-            if (top < 20) {
+            if (top < 12) {
                 top = event.clientY + 15;
             }
-            
+
             tooltip.style('left', left + 'px')
                 .style('top', top + 'px');
         })
         .on('mouseout', () => {
-            tooltip.transition().duration(300).style('opacity', 0);
+            tooltip.transition().duration(250).style('opacity', 0);
             applyCountryFills(window.currentCountry);
         })
-        .on('click', (event, d) => handleCountryClick(d));
+        .on('click', (_, d) => handleCountryClick(d));
 
     applyCountryFills(window.currentCountry);
 }

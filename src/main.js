@@ -230,10 +230,11 @@ function setupVisualizationControls() {
 function setupCountrySelector() {
     const countryCards = d3.selectAll(".country-card");
 
-    countryCards.on("click", async function() {
-        const selectedCountry = d3.select(this).attr("data-country");
-        await changeCountry(selectedCountry);
-    });
+    // Disabled: Only the map selector should trigger country changes
+    // countryCards.on("click", async function() {
+    //     const selectedCountry = d3.select(this).attr("data-country");
+    //     await changeCountry(selectedCountry);
+    // });
 }
 
 // Export functions for global access if needed
