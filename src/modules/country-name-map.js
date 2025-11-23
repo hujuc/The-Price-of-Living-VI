@@ -1,4 +1,5 @@
 export const countryNameMap = {
+    "Albânia": "Albania",
     "Alemanha": "Germany",
     "Áustria": "Austria",
     "Bélgica": "Belgium",
@@ -9,6 +10,7 @@ export const countryNameMap = {
     "Eslováquia": "Slovakia",
     "Eslovénia": "Slovenia",
     "Espanha": "Spain",
+    "Estados Unidos": "United States",
     "Estónia": "Estonia",
     "Finlândia": "Finland",
     "França": "France",
@@ -20,7 +22,10 @@ export const countryNameMap = {
     "Letónia": "Latvia",
     "Lituânia": "Lithuania",
     "Luxemburgo": "Luxembourg",
+    "Macedónia do Norte": "North Macedonia",
     "Malta": "Malta",
+    "Moldávia": "Moldova",
+    "Montenegro": "Montenegro",
     "Noruega": "Norway",
     "Países Baixos": "Netherlands",
     "Polónia": "Poland",
@@ -28,6 +33,10 @@ export const countryNameMap = {
     "Reino Unido": "United Kingdom",
     "República Checa": "Czechia",
     "Roménia": "Romania",
+    "Sérvia": "Serbia",
+    "Síria": "Syria",
     "Suécia": "Sweden",
-    "Suíça": "Switzerland"
+    "Suíça": "Switzerland",
+    "Turquia": "Turkey",
+    "Ucrânia": "Ukraine"
 };

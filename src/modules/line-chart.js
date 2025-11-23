@@ -3,6 +3,8 @@
  * Creates line charts for inflation data over time with category filtering
  */
 
+import { renderEmptyState } from './empty-state.js';
+
 let chartData = null;
 let selectedCategories = new Set();
 let currentCountry = "Portugal";
@@ -12,8 +14,23 @@ let currentCountry = "Portugal";
  * Shows temporal evolution with Total highlighted and category filters
  */
 export function createInflationCategoriesChart(data, country = "Portugal") {
-    chartData = data;
     currentCountry = country;
+
+    if (!data || !Array.isArray(data.categories) || data.categories.length === 0) {
+        chartData = null;
+        selectedCategories.clear();
+        d3.select("#category-filter-container").html("");
+        d3.select("#viz-inflation-categories")
+            .html(renderEmptyState({
+                title: "Sem dados de inflação",
+                message: "Não encontrámos séries para este país neste período.",
+                meta: "Selecione outro país no mapa para continuar a explorar.",
+                icon: "📉"
+            }));
+        return;
+    }
+
+    chartData = data;
 
     // Initialize all categories as selected
     selectedCategories.clear();
@@ -24,6 +41,11 @@ export function createInflationCategoriesChart(data, country = "Portugal") {
 
     // Draw the chart
     drawChart();
+}
+
+export function resetInflationCategoriesState() {
+    chartData = null;
+    selectedCategories.clear();
 }
 
 /**
@@ -118,13 +140,42 @@ function drawChart() {
     // Remove any existing tooltips
     d3.selectAll(".line-chart-tooltip").remove();
 
+    if (!chartData || !Array.isArray(chartData.categories)) {
+        container.html(renderEmptyState({
+            title: "Sem dados de inflação",
+            message: "Não conseguimos encontrar séries para o país selecionado.",
+            meta: "Selecione outro país para continuar a análise.",
+            icon: "📉"
+        }));
+        return;
+    }
+
     if (selectedCategories.size === 0) {
-        container.append("div")
-            .attr("class", "empty-message")
-            .style("text-align", "center")
-            .style("padding", "50px")
-            .style("color", "#7f8c8d")
-            .text("Selecione pelo menos uma categoria para visualizar");
+        container.html(renderEmptyState({
+            title: "Selecione uma categoria",
+            message: "Tem de escolher pelo menos um indicador para gerar o gráfico de inflação.",
+            meta: "Use as caixas acima para ativar novamente as categorias.",
+            icon: "📈"
+        }));
+        return;
+    }
+
+    const visibleCategories = chartData.categories
+        .filter(c => selectedCategories.has(c.name))
+        .map(c => ({
+            ...c,
+            values: Array.isArray(c.values) ? c.values.filter(v => v?.value != null && !isNaN(v.value)) : []
+        }));
+
+    const categoriesWithData = visibleCategories.filter(c => c.values.length);
+
+    if (categoriesWithData.length === 0) {
+        container.html(renderEmptyState({
+            title: "Sem dados de inflação",
+            message: "Não encontrámos séries válidas para o país ou categorias selecionadas.",
+            meta: "Escolha outro país no mapa ou volte a selecionar as categorias disponíveis.",
+            icon: "📉"
+        }));
         return;
     }
 
@@ -141,16 +192,15 @@ function drawChart() {
         .attr("transform", `translate(${margin.left},${margin.top})`);
 
     // Filter categories based on selection
-    const visibleCategories = chartData.categories.filter(c => selectedCategories.has(c.name));
-    const totalCategory = visibleCategories.find(c => c.name === "Total");
-    const otherCategories = visibleCategories.filter(c => c.name !== "Total");
+    const totalCategory = categoriesWithData.find(c => c.name === "Total");
+    const otherCategories = categoriesWithData.filter(c => c.name !== "Total");
 
     // Set scales
     const xScale = d3.scaleLinear()
         .domain([d3.min(chartData.years), d3.max(chartData.years)])
         .range([0, width]);
 
-    const allValues = visibleCategories.flatMap(c => c.values.map(v => v.value));
+    const allValues = categoriesWithData.flatMap(c => c.values.map(v => v.value));
     const yScale = d3.scaleLinear()
         .domain([d3.min(allValues) - 2, d3.max(allValues) + 2])
         .range([height, 0]);

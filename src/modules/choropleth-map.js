@@ -1,4 +1,5 @@
 import { countryNameMap } from './country-name-map.js';
+import { renderEmptyState } from './empty-state.js';
 
 /**
  * Choropleth Map Module
@@ -42,11 +43,12 @@ function resolveDatasetCountryName(country) {
 function getSelectedCountryNames() {
     const datasetName = resolveDatasetCountryName(currentCountry) || currentCountry;
     const englishName = countryNameMap[datasetName] || datasetName;
+    const displayName = datasetName;
 
     return {
         dataset: datasetName,
         english: englishName,
-        display: datasetName
+        display: displayName
     };
 }
 
@@ -73,7 +75,12 @@ function updateCountrySummary() {
     if (!hicpData?.data || !hicpData.data[currentYear]) {
         summaryContainer
             .attr("class", "map-country-summary empty")
-            .text("Sem dados para apresentar.");
+            .html(renderEmptyState({
+                title: "Sem dados disponíveis",
+                message: "Ainda não temos valores de HICP para o ano selecionado.",
+                meta: "Escolha outro ano acima para continuar a exploração.",
+                icon: "🗺️"
+            }));
         return;
     }
 
@@ -111,7 +118,12 @@ function updateCountrySummary() {
     if (value == null || isNaN(value)) {
         summaryContainer
             .attr("class", "map-country-summary empty")
-            .text(`Sem dados para ${display} em ${currentYear}.`);
+            .html(renderEmptyState({
+                title: `Sem dados para ${display}`,
+                message: `Não encontramos valores de ${currentCategory.toLowerCase()} para ${display} em ${currentYear}.`,
+                meta: "Tente selecionar outro país ou ano no painel do mapa.",
+                icon: "📉"
+            }));
         return;
     }
 
@@ -184,7 +196,12 @@ export async function createChoroplethMap(data, country = "Portugal") {
 
     if (!hicpData || !hicpData.years?.length || !hicpData.categories?.length) {
         d3.select("#viz-choropleth-map")
-            .html("<div style='text-align: center; padding: 50px; color: #e74c3c;'><p>Sem dados disponíveis para o mapa.</p></div>");
+            .html(renderEmptyState({
+                title: "Mapa sem dados",
+                message: "Não conseguimos carregar as séries de inflação harmonizada para esta visualização.",
+                meta: "Verifique o ficheiro HICP ou tente recarregar a página.",
+                icon: "🗺️"
+            }));
         return;
     }
 
@@ -233,9 +250,12 @@ export async function createChoroplethMap(data, country = "Portugal") {
         drawMap(europeGeoJSON);
     } catch (error) {
         console.error("Error loading map:", error);
-        container.append("p")
-            .style("color", "red")
-            .text("Erro ao carregar o mapa da Europa.");
+        container.html(renderEmptyState({
+            title: "Erro ao carregar o mapa",
+            message: "Não foi possível descarregar a geometria da Europa para desenhar a visualização.",
+            meta: `Detalhes técnicos: ${error.message}`,
+            icon: "⚠️"
+        }));
     }
 
     // Add legend
@@ -313,7 +333,7 @@ function getCountryColor(feature) {
     }
 
     const value = yearData[countryName][currentCategory];
-    if (!value) {
+    if (value == null || isNaN(value)) {
         return "#e0e0e0";
     }
     if (colorScaleMode === "difference" && selectedCountryValue != null) {
@@ -341,6 +361,9 @@ function getCountryName(feature) {
     // Check Portuguese name mapping
     for (const [portuguese, english] of Object.entries(countryNameMap)) {
         if (english === name && hicpData.countries.includes(portuguese)) {
+            return portuguese;
+        }
+        if (portuguese === name && hicpData.countries.includes(portuguese)) {
             return portuguese;
         }
     }
@@ -594,11 +617,30 @@ export function updateChoroplethMap(year, category) {
 
     updateColorScale();
 
-    // Update country colors
     if (!svg) {
         return;
     }
 
+    const hasYearData = !!hicpData?.data?.[currentYear];
+    const hasCategoryData = hasYearData && Object.values(hicpData.data[currentYear]).some(entry => entry?.[currentCategory] != null && !isNaN(entry[currentCategory]));
+
+    if (!hasYearData || !hasCategoryData) {
+        svg.selectAll(".country")
+            .transition()
+            .duration(300)
+            .attr("fill", "#e0e0e0");
+
+        svg.selectAll("defs").remove();
+        svg.selectAll("g").filter(function() {
+            return d3.select(this).select("rect").size() > 0;
+        }).remove();
+
+        updateSelectedCountryHighlight();
+        updateCountrySummary();
+        return;
+    }
+
+    // Update country colors
     svg.selectAll(".country")
         .transition()
         .duration(500)
@@ -633,37 +675,65 @@ export function setupChoroplethControls(data, country = "Portugal") {
     // Year selector
     const yearSelect = d3.select("#map-year-select");
     yearSelect.selectAll("option").remove();
-    yearSelect.selectAll("option")
-        .data(data.years)
-        .enter()
-        .append("option")
-        .attr("value", d => d)
-        .text(d => d)
-        .property("selected", d => d === currentYear);
+    yearSelect.on("change", null);
 
-    yearSelect.property("value", currentYear);
+    if (hicpData.years?.length) {
+        yearSelect.selectAll("option")
+            .data(data.years)
+            .enter()
+            .append("option")
+            .attr("value", d => d)
+            .text(d => d)
+            .property("selected", d => d === currentYear);
 
-    yearSelect.on("change", function() {
-        currentYear = +this.value;
-        updateChoroplethMap(currentYear, currentCategory);
-    });
+        yearSelect.property("value", currentYear)
+            .attr("disabled", null)
+            .classed("disabled", false);
+
+        yearSelect.on("change", function() {
+            currentYear = +this.value;
+            updateChoroplethMap(currentYear, currentCategory);
+        });
+    } else {
+        yearSelect
+            .append("option")
+            .attr("value", "")
+            .text("Sem anos disponíveis");
+        yearSelect
+            .attr("disabled", true)
+            .classed("disabled", true);
+    }
 
     // Category selector
     const categorySelect = d3.select("#map-category-select");
     categorySelect.selectAll("option").remove();
-    categorySelect.selectAll("option")
-        .data(data.categories)
-        .enter()
-        .append("option")
-        .attr("value", d => d)
-        .text(d => d)
-        .property("selected", d => d === currentCategory);
+    categorySelect.on("change", null);
 
-    categorySelect.property("value", currentCategory);
+    if (hicpData.categories?.length) {
+        categorySelect.selectAll("option")
+            .data(data.categories)
+            .enter()
+            .append("option")
+            .attr("value", d => d)
+            .text(d => d)
+            .property("selected", d => d === currentCategory);
 
-    categorySelect.on("change", function() {
-        currentCategory = this.value;
-        updateChoroplethMap(currentYear, currentCategory);
-    });
+        categorySelect.property("value", currentCategory)
+            .attr("disabled", null)
+            .classed("disabled", false);
+
+        categorySelect.on("change", function() {
+            currentCategory = this.value;
+            updateChoroplethMap(currentYear, currentCategory);
+        });
+    } else {
+        categorySelect
+            .append("option")
+            .attr("value", "")
+            .text("Sem categorias disponíveis");
+        categorySelect
+            .attr("disabled", true)
+            .classed("disabled", true);
+    }
     updateCountrySummary();
 }

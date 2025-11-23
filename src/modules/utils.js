@@ -49,3 +49,5 @@ export function initSmoothScroll() {
         });
     });
 }
+
+// Empty-state utilities moved to empty-state.js to avoid browser caching issues.

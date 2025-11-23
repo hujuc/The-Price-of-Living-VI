@@ -3,6 +3,8 @@
  * Compares nominal vs real minimum wage relative to a dynamic base year
  */
 
+import { renderEmptyState } from './empty-state.js';
+
 /**
  * Create bullet graph showing nominal vs real wage
  * @param {Object} yearData - Data for selected year {year, nominal, real, baseYear}
@@ -14,7 +16,12 @@ export function createBulletGraph(yearData, baseNominal, country = "Portugal", b
     container.html("");
 
     if (!yearData) {
-        container.html("<div style='text-align: center; padding: 50px;'>Selecione um ano</div>");
+        container.html(renderEmptyState({
+            title: "Selecione um ano",
+            message: "Escolha um ponto temporal para comparar o salário nominal e real.",
+            meta: "Use a lista de anos disponível acima do gráfico.",
+            icon: "🗓️"
+        }));
         return;
     }
 
@@ -22,7 +29,12 @@ export function createBulletGraph(yearData, baseNominal, country = "Portugal", b
     const referenceNominal = baseNominal;
 
     if (!referenceNominal || !isFinite(referenceNominal) || referenceNominal <= 0) {
-        container.html("<div style='text-align: center; padding: 50px; color: #e67e22;'>Sem dados suficientes para calcular o ano de referência.</div>");
+        container.html(renderEmptyState({
+            title: "Dados de referência em falta",
+            message: "Não foi possível identificar o salário base necessário para calibrar o gráfico.",
+            meta: "Verifique se o dataset possui valores para o ano de referência.",
+            icon: "📏"
+        }));
         return;
     }
 
@@ -299,6 +311,13 @@ export function setupBulletYearSelector(bulletGraphData, country = "Portugal") {
 
     if (!bulletGraphData || !bulletGraphData.years) {
         console.error("No data available for year selector");
+        d3.select("#viz-bullet-graph")
+            .html(renderEmptyState({
+                title: "Dados indisponíveis",
+                message: "Não foi possível carregar as séries anuais do salário mínimo.",
+                meta: "Garanta que o ficheiro de dados contém anos válidos para o país.",
+                icon: "🚧"
+            }));
         return;
     }
 
@@ -306,6 +325,18 @@ export function setupBulletYearSelector(bulletGraphData, country = "Portugal") {
 
     if (!baseYear || !baseNominal) {
         console.warn("Bullet graph base information missing", bulletGraphData);
+    }
+
+    if (!years.length) {
+        resetBulletYearSelector("Sem anos disponíveis");
+        d3.select("#viz-bullet-graph")
+            .html(renderEmptyState({
+                title: "Sem dados disponíveis",
+                message: "Não há valores anuais suficientes para construir o gráfico comparativo.",
+                meta: "Confirme se os ficheiros de dados incluem o país selecionado.",
+                icon: "📉"
+            }));
+        return;
     }
 
     // Create dropdown
@@ -322,13 +353,20 @@ export function setupBulletYearSelector(bulletGraphData, country = "Portugal") {
     });
 
     // Initial render
-    const initialYear = [...years].reverse().find(year => data[year]);
+    const initialYear = years[years.length - 1];
     if (initialYear) {
         select.property("value", initialYear);
         createBulletGraph(data[initialYear], baseNominal, country, baseYear);
     } else {
+        resetBulletYearSelector("Sem anos disponíveis");
         d3.select("#viz-bullet-graph")
-            .html("<div style='text-align: center; padding: 50px; color: #e74c3c;'>Sem dados suficientes para gerar o gráfico.</div>");
+            .html(renderEmptyState({
+                title: "Sem dados disponíveis",
+                message: "Não há valores anuais suficientes para construir o gráfico comparativo.",
+                meta: "Confirme se os ficheiros de dados incluem o país selecionado.",
+                icon: "📉"
+            }));
+        return;
     }
 
     // Add change listener
@@ -336,8 +374,25 @@ export function setupBulletYearSelector(bulletGraphData, country = "Portugal") {
         const selectedYear = +this.value;
         if (data[selectedYear]) {
             createBulletGraph(data[selectedYear], baseNominal, country, baseYear);
+        } else {
+            d3.select("#viz-bullet-graph")
+                .html(renderEmptyState({
+                    title: "Sem dados para este ano",
+                    message: "Não existem valores disponíveis para o ano selecionado.",
+                    meta: "Experimente escolher outro ano ou país.",
+                    icon: "📉"
+                }));
         }
     });
 
     console.log(`Year selector created for ${country} with`, years.length, "years");
+}
+
+export function resetBulletYearSelector(message = "Sem anos disponíveis") {
+    const container = d3.select("#bullet-year-selector");
+    container.html(`
+        <select id="year-select" class="year-select-dropdown" disabled>
+            <option>${message}</option>
+        </select>
+    `);
 }

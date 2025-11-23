@@ -3,9 +3,30 @@
  * Analyzes the relationship between inflation and income share of poorest 40%
  */
 
+import { renderEmptyState } from './empty-state.js';
+
 let currentView = "variation"; // "variation" or "timeline"
 let scatterData = null;
 let currentCountry = "Portugal";
+
+function hasValidScatterDataset(data) {
+    return !!(data && Array.isArray(data.data) && data.data.length);
+}
+
+function updateScatterButtonsState(disabled) {
+    const btnVariation = d3.select("#btn-scatter-variation");
+    const btnTimeline = d3.select("#btn-scatter-timeline");
+
+    btnVariation
+        .attr("disabled", disabled ? true : null)
+        .classed("disabled", !!disabled);
+
+    btnTimeline
+        .attr("disabled", disabled ? true : null)
+        .classed("disabled", !!disabled);
+
+    return { btnVariation, btnTimeline };
+}
 
 /**
  * Create scatter plot with specified view
@@ -19,12 +40,12 @@ export function createScatterPlot(data, view = "variation", country = "Portugal"
     container.selectAll("*").remove();
 
     if (!scatterData || !Array.isArray(scatterData.data) || scatterData.data.length === 0) {
-        container.append("div")
-            .attr("class", "empty-message")
-            .style("text-align", "center")
-            .style("padding", "50px")
-            .style("color", "#7f8c8d")
-            .text("Sem dados suficientes para gerar esta visualização.");
+        container.html(renderEmptyState({
+            title: "Dados insuficientes",
+            message: "Não há registos suficientes para analisar poder de compra neste momento.",
+            meta: "Selecione outro país ou período.",
+            icon: "📊"
+        }));
         return;
     }
 
@@ -41,29 +62,28 @@ export function createScatterPlot(data, view = "variation", country = "Portugal"
         .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
     if (view === "variation") {
-        drawVariationView(svg, width, height, margin);
+        drawVariationView(container, svg, width, height, margin);
     } else {
-        drawTimelineView(svg, width, height, margin);
+        drawTimelineView(container, svg, width, height, margin);
     }
 }
 
 /**
  * View 1: Income variation vs inflation variation (Purchasing Power Analysis)
  */
-function drawVariationView(svg, width, height, margin) {
+function drawVariationView(container, svg, width, height, margin) {
     // Filter out data points without both variations
     const plotData = scatterData.data.filter(d =>
         d.inflationVariation !== null && d.incomeVariation !== null
     );
 
     if (plotData.length === 0) {
-        svg.append("text")
-            .attr("x", width / 2)
-            .attr("y", height / 2)
-            .attr("text-anchor", "middle")
-            .attr("font-size", "14px")
-            .attr("fill", "#7f8c8d")
-            .text("Sem dados suficientes para analisar variações neste período.");
+        container.html(renderEmptyState({
+            title: "Sem dados para variações",
+            message: "Faltam dados simultâneos de inflação e rendimento para construir esta comparação.",
+            meta: "Tente alternar o país ou mudar para a visão temporal.",
+            icon: "🧭"
+        }));
         return;
     }
 
@@ -257,7 +277,7 @@ function drawVariationView(svg, width, height, margin) {
 /**
  * View 2: Purchasing Power Index over time
  */
-function drawTimelineView(svg, width, height, margin) {
+function drawTimelineView(container, svg, width, height, margin) {
     const plotData = scatterData.data;
 
     // Calculate purchasing power index for each year
@@ -274,13 +294,12 @@ function drawTimelineView(svg, width, height, margin) {
     const validData = dataWithPowerIndex.filter(d => d.purchasingPower !== null);
 
     if (validData.length === 0) {
-        svg.append("text")
-            .attr("x", width / 2)
-            .attr("y", height / 2)
-            .attr("text-anchor", "middle")
-            .attr("font-size", "14px")
-            .attr("fill", "#7f8c8d")
-            .text("Sem dados suficientes para construir a evolução temporal.");
+        container.html(renderEmptyState({
+            title: "Sem dados para a evolução",
+            message: "Não foi possível calcular o índice de poder de compra ano a ano.",
+            meta: "Experimente mudar para a visão de variação ou escolha outro país.",
+            icon: "📈"
+        }));
         return;
     }
 
@@ -486,16 +505,35 @@ function drawTimelineView(svg, width, height, margin) {
  * Setup view toggle controls
  */
 export function setupScatterControls(data, country = "Portugal") {
+    const hasData = hasValidScatterDataset(data);
+    const { btnVariation, btnTimeline } = updateScatterButtonsState(!hasData);
+
+    btnVariation.on("click", null);
+    btnTimeline.on("click", null);
+
+    if (!hasData) {
+        scatterData = null;
+        currentCountry = country;
+        btnVariation.classed("active", true);
+        btnTimeline.classed("active", false);
+        toggleDescriptions("variation");
+        return;
+    }
+
     scatterData = data;
     currentCountry = country;
 
-    const btnVariation = d3.select("#btn-scatter-variation");
-    const btnTimeline = d3.select("#btn-scatter-timeline");
+    btnVariation.classed("active", true);
+    btnTimeline.classed("active", false);
 
     // Initial view
-    createScatterPlot(data, "variation", country);
+    createScatterPlot(scatterData, "variation", currentCountry);
+    toggleDescriptions("variation");
 
     btnVariation.on("click", function() {
+        if (!hasValidScatterDataset(scatterData)) {
+            return;
+        }
         btnVariation.classed("active", true);
         btnTimeline.classed("active", false);
         createScatterPlot(scatterData, "variation", currentCountry);
@@ -503,11 +541,22 @@ export function setupScatterControls(data, country = "Portugal") {
     });
 
     btnTimeline.on("click", function() {
+        if (!hasValidScatterDataset(scatterData)) {
+            return;
+        }
         btnVariation.classed("active", false);
         btnTimeline.classed("active", true);
         createScatterPlot(scatterData, "timeline", currentCountry);
         toggleDescriptions("timeline");
     });
+}
+
+export function resetScatterControls() {
+    scatterData = null;
+    const { btnVariation, btnTimeline } = updateScatterButtonsState(true);
+    btnVariation.on("click", null).classed("active", true);
+    btnTimeline.on("click", null).classed("active", false);
+    toggleDescriptions("variation");
 }
 
 /**

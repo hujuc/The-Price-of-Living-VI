@@ -5,13 +5,84 @@
 
 // Centralized country name mapping to handle datasets with different naming conventions
 const countryMappings = {
-    "Portugal": { pordata: "Portugal", eurostat: "Portugal", display: "Portugal" },
+    "Albânia": { pordata: "Albânia", eurostat: "Albania", display: "Albânia" },
+    "Albania": { pordata: "Albânia", eurostat: "Albania", display: "Albânia" },
+    "Alemanha": { pordata: "Alemanha", eurostat: "Germany", display: "Alemanha" },
+    "Germany": { pordata: "Alemanha", eurostat: "Germany", display: "Alemanha" },
+    "Áustria": { pordata: "Áustria", eurostat: "Austria", display: "Áustria" },
+    "Austria": { pordata: "Áustria", eurostat: "Austria", display: "Áustria" },
+    "Bélgica": { pordata: "Bélgica", eurostat: "Belgium", display: "Bélgica" },
+    "Belgium": { pordata: "Bélgica", eurostat: "Belgium", display: "Bélgica" },
+    "Bulgária": { pordata: "Bulgária", eurostat: "Bulgaria", display: "Bulgária" },
+    "Bulgaria": { pordata: "Bulgária", eurostat: "Bulgaria", display: "Bulgária" },
+    "Chipre": { pordata: "Chipre", eurostat: "Cyprus", display: "Chipre" },
+    "Cyprus": { pordata: "Chipre", eurostat: "Cyprus", display: "Chipre" },
+    "Croácia": { pordata: "Croácia", eurostat: "Croatia", display: "Croácia" },
+    "Croatia": { pordata: "Croácia", eurostat: "Croatia", display: "Croácia" },
+    "República Checa": { pordata: "República Checa", eurostat: "Czechia", display: "República Checa" },
+    "Czechia": { pordata: "República Checa", eurostat: "Czechia", display: "República Checa" },
+    "Dinamarca": { pordata: "Dinamarca", eurostat: "Denmark", display: "Dinamarca" },
+    "Denmark": { pordata: "Dinamarca", eurostat: "Denmark", display: "Dinamarca" },
+    "Eslováquia": { pordata: "Eslováquia", eurostat: "Slovakia", display: "Eslováquia" },
+    "Slovakia": { pordata: "Eslováquia", eurostat: "Slovakia", display: "Eslováquia" },
+    "Eslovénia": { pordata: "Eslovénia", eurostat: "Slovenia", display: "Eslovénia" },
+    "Slovenia": { pordata: "Eslovénia", eurostat: "Slovenia", display: "Eslovénia" },
     "Espanha": { pordata: "Espanha", eurostat: "Spain", display: "Espanha" },
     "Spain": { pordata: "Espanha", eurostat: "Spain", display: "Espanha" },
+    "Estados Unidos": { pordata: "Estados Unidos", eurostat: "United States", display: "Estados Unidos" },
+    "United States": { pordata: "Estados Unidos", eurostat: "United States", display: "Estados Unidos" },
+    "Estónia": { pordata: "Estónia", eurostat: "Estonia", display: "Estónia" },
+    "Estonia": { pordata: "Estónia", eurostat: "Estonia", display: "Estónia" },
+    "Finlândia": { pordata: "Finlândia", eurostat: "Finland", display: "Finlândia" },
+    "Finland": { pordata: "Finlândia", eurostat: "Finland", display: "Finlândia" },
     "França": { pordata: "França", eurostat: "France", display: "França" },
     "France": { pordata: "França", eurostat: "France", display: "França" },
-    "Alemanha": { pordata: "Alemanha", eurostat: "Germany", display: "Alemanha" },
-    "Germany": { pordata: "Alemanha", eurostat: "Germany", display: "Alemanha" }
+    "Grécia": { pordata: "Grécia", eurostat: "Greece", display: "Grécia" },
+    "Greece": { pordata: "Grécia", eurostat: "Greece", display: "Grécia" },
+    "Hungria": { pordata: "Hungria", eurostat: "Hungary", display: "Hungria" },
+    "Hungary": { pordata: "Hungria", eurostat: "Hungary", display: "Hungria" },
+    "Islândia": { pordata: "Islândia", eurostat: "Iceland", display: "Islândia" },
+    "Iceland": { pordata: "Islândia", eurostat: "Iceland", display: "Islândia" },
+    "Irlanda": { pordata: "Irlanda", eurostat: "Ireland", display: "Irlanda" },
+    "Ireland": { pordata: "Irlanda", eurostat: "Ireland", display: "Irlanda" },
+    "Itália": { pordata: "Itália", eurostat: "Italy", display: "Itália" },
+    "Italy": { pordata: "Itália", eurostat: "Italy", display: "Itália" },
+    "Letónia": { pordata: "Letónia", eurostat: "Latvia", display: "Letónia" },
+    "Latvia": { pordata: "Letónia", eurostat: "Latvia", display: "Letónia" },
+    "Lituânia": { pordata: "Lituânia", eurostat: "Lithuania", display: "Lituânia" },
+    "Lithuania": { pordata: "Lituânia", eurostat: "Lithuania", display: "Lituânia" },
+    "Luxemburgo": { pordata: "Luxemburgo", eurostat: "Luxembourg", display: "Luxemburgo" },
+    "Luxembourg": { pordata: "Luxemburgo", eurostat: "Luxembourg", display: "Luxemburgo" },
+    "Macedónia do Norte": { pordata: "Macedónia do Norte", eurostat: "North Macedonia", display: "Macedónia do Norte" },
+    "North Macedonia": { pordata: "Macedónia do Norte", eurostat: "North Macedonia", display: "Macedónia do Norte" },
+    "Malta": { pordata: "Malta", eurostat: "Malta", display: "Malta" },
+    "Moldávia": { pordata: "Moldávia", eurostat: "Moldova", display: "Moldávia" },
+    "Moldova": { pordata: "Moldávia", eurostat: "Moldova", display: "Moldávia" },
+    "Montenegro": { pordata: "Montenegro", eurostat: "Montenegro", display: "Montenegro" },
+    "Noruega": { pordata: "Noruega", eurostat: "Norway", display: "Noruega" },
+    "Norway": { pordata: "Noruega", eurostat: "Norway", display: "Noruega" },
+    "Países Baixos": { pordata: "Países Baixos", eurostat: "Netherlands", display: "Países Baixos" },
+    "Netherlands": { pordata: "Países Baixos", eurostat: "Netherlands", display: "Países Baixos" },
+    "Polónia": { pordata: "Polónia", eurostat: "Poland", display: "Polónia" },
+    "Poland": { pordata: "Polónia", eurostat: "Poland", display: "Polónia" },
+    "Portugal": { pordata: "Portugal", eurostat: "Portugal", display: "Portugal" },
+    "Reino Unido": { pordata: "Reino Unido", eurostat: "United Kingdom", display: "Reino Unido" },
+    "United Kingdom": { pordata: "Reino Unido", eurostat: "United Kingdom", display: "Reino Unido" },
+    "Roménia": { pordata: "Roménia", eurostat: "Romania", display: "Roménia" },
+    "Romania": { pordata: "Roménia", eurostat: "Romania", display: "Roménia" },
+    "Sérvia": { pordata: "Sérvia", eurostat: "Serbia", display: "Sérvia" },
+    "Serbia": { pordata: "Sérvia", eurostat: "Serbia", display: "Sérvia" },
+    "Síria": { pordata: "Síria", eurostat: "Syria", display: "Síria" },
+    "Syria": { pordata: "Síria", eurostat: "Syria", display: "Síria" },
+    "Suécia": { pordata: "Suécia", eurostat: "Sweden", display: "Suécia" },
+    "Sweden": { pordata: "Suécia", eurostat: "Sweden", display: "Suécia" },
+    "Suíça": { pordata: "Suíça", eurostat: "Switzerland", display: "Suíça" },
+    "Switzerland": { pordata: "Suíça", eurostat: "Switzerland", display: "Suíça" },
+    "Turquia": { pordata: "Turquia", eurostat: "Turkey", display: "Turquia" },
+    "Turkey": { pordata: "Turquia", eurostat: "Turkey", display: "Turquia" },
+    "Türkiye": { pordata: "Turquia", eurostat: "Türkiye", display: "Turquia" },
+    "Ucrânia": { pordata: "Ucrânia", eurostat: "Ukraine", display: "Ucrânia" },
+    "Ukraine": { pordata: "Ucrânia", eurostat: "Ukraine", display: "Ucrânia" }
 };
 
 function getPordataCountryName(country) {
@@ -27,6 +98,15 @@ function getEurostatCountryName(country) {
     }
     return countryMappings[country]?.eurostat || country;
 }
+
+function getDisplayCountryName(country) {
+    if (!country) {
+        return null;
+    }
+    return countryMappings[country]?.display || country;
+}
+
+const comparisonSnapshotCache = {};
 
 /**
  * Load CSV data from file
@@ -122,6 +202,13 @@ export async function loadInflationByCategories(country = "Portugal") {
         }
 
         const processedData = processInflationData(data, country);
+
+        const hasCategories = processedData?.categories?.length;
+        if (!hasCategories) {
+            console.warn(`No inflation categories available for ${country}`);
+            return null;
+        }
+
         console.log(`Processed data for ${country}:`, processedData);
         return processedData;
 
@@ -235,7 +322,7 @@ export async function loadMinimumWageData(country = "Portugal") {
  * Base year is 2012
  */
 export function calculateRealWage(nominalWage, inflationData, year, baseYear = 2012) {
-    if (!inflationData || !inflationData.categories) {
+    if (!inflationData || !inflationData.categories?.length) {
         return null;
     }
 
@@ -282,7 +369,8 @@ export async function loadBulletGraphData(country = "Portugal") {
         ]);
 
         if (!wageData || !inflationData) {
-            throw new Error("Failed to load required data");
+            console.warn(`Bullet graph skipped: missing datasets for ${country}`);
+            return null;
         }
 
         // Get years where we have both wage and inflation data
@@ -323,11 +411,91 @@ export async function loadBulletGraphData(country = "Portugal") {
             }
         });
 
-        console.log(`Bullet graph data prepared for ${country}:`, Object.keys(bulletData).length, "years (base year:", baseYear, ")");
-        return { data: bulletData, years: availableYears, baseYear, baseNominal };
+        const validYearCount = Object.keys(bulletData).length;
+
+        if (validYearCount === 0) {
+            console.warn(`Bullet graph skipped: no intersecting data points for ${country}`);
+            return null;
+        }
+
+        console.log(`Bullet graph data prepared for ${country}:`, validYearCount, "years (base year:", baseYear, ")");
+        const intersectingYears = availableYears.filter(year => bulletData[year]);
+        return { data: bulletData, years: intersectingYears, baseYear, baseNominal };
 
     } catch (error) {
         console.error("Error loading bullet graph data:", error);
+        return null;
+    }
+}
+
+export async function loadCountryComparisonSnapshot(country = "Portugal") {
+    const targetCountry = country || "Portugal";
+
+    if (comparisonSnapshotCache[targetCountry]) {
+        return comparisonSnapshotCache[targetCountry];
+    }
+
+    try {
+        const [inflationData, wageData] = await Promise.all([
+            loadInflationByCategories(targetCountry),
+            loadMinimumWageData(targetCountry)
+        ]);
+
+        const snapshot = {
+            country: targetCountry,
+            displayName: getDisplayCountryName(targetCountry) || targetCountry,
+            inflation: null,
+            wage: null
+        };
+
+        if (inflationData?.categories?.length) {
+            const totalCategory = inflationData.categories.find(c => c.name === "Total");
+            if (totalCategory?.values?.length) {
+                const orderedValues = [...totalCategory.values].sort((a, b) => a.year - b.year);
+                const latestEntry = orderedValues[orderedValues.length - 1];
+                if (latestEntry?.value != null) {
+                    snapshot.inflation = {
+                        year: latestEntry.year,
+                        value: latestEntry.value
+                    };
+                }
+            }
+        }
+
+        if (wageData && Object.keys(wageData).length) {
+            const wageYears = Object.keys(wageData)
+                .map(year => +year)
+                .filter(year => !isNaN(year))
+                .sort((a, b) => a - b);
+
+            if (wageYears.length) {
+                const latestYear = wageYears[wageYears.length - 1];
+                const nominalValue = wageData[latestYear];
+                const baseYear = wageYears.includes(2012) ? 2012 : wageYears[0];
+                const baseNominal = wageData[baseYear];
+                const realValue = (nominalValue != null && inflationData)
+                    ? calculateRealWage(nominalValue, inflationData, latestYear, baseYear)
+                    : null;
+                const realIndex = (realValue != null && baseNominal)
+                    ? (realValue / baseNominal) * 100
+                    : null;
+
+                snapshot.wage = {
+                    year: latestYear,
+                    nominal: nominalValue,
+                    real: realValue,
+                    baseYear,
+                    baseNominal,
+                    index: realIndex
+                };
+            }
+        }
+
+        comparisonSnapshotCache[targetCountry] = snapshot;
+        return snapshot;
+
+    } catch (error) {
+        console.error("Error loading comparison snapshot:", error);
         return null;
     }
 }

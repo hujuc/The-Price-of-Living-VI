@@ -4,6 +4,7 @@
  */
 
 import { wrapText } from './utils.js';
+import { renderEmptyState } from './empty-state.js';
 
 let currentCountry = "Portugal";
 
@@ -20,7 +21,12 @@ export function createRadarChart(data, selectedYears, country = "Portugal") {
     const categories = data.categories.filter(c => c.name !== "Total");
 
     if (categories.length === 0) {
-        container.html("<div style='text-align: center; padding: 50px;'>Sem dados para exibir</div>");
+        container.html(renderEmptyState({
+            title: "Sem categorias disponíveis",
+            message: "Não há dados suficientes para construir o radar de inflação por categoria.",
+            meta: "Verifique se a base inclui valores além do total.",
+            icon: "🕸️"
+        }));
         return;
     }
 
@@ -267,7 +273,12 @@ export function updateRadarChart(data) {
 
     if (selectedYears.length === 0) {
         d3.select("#viz-inflation-categories")
-            .html("<div style='text-align: center; padding: 100px; color: #7f8c8d;'><p style='font-size: 18px;'>Por favor, selecione pelo menos um ano</p></div>");
+            .html(renderEmptyState({
+                title: "Selecione pelo menos um ano",
+                message: "Escolha um ou mais anos para comparar a inflação por categoria.",
+                meta: "Pode combinar anos recentes com décadas anteriores para ver tendências.",
+                icon: "🗂️"
+            }));
         return;
     }
 

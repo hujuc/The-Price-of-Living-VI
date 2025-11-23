@@ -4,13 +4,14 @@
  */
 
 import { loadInflationByCategories, loadBulletGraphData, loadHICPData, loadIncomeAndInflationData } from './modules/data-loader.js';
-import { createInflationCategoriesChart } from './modules/line-chart.js';
+import { createInflationCategoriesChart, resetInflationCategoriesState } from './modules/line-chart.js';
 import { createRadarChart, setupYearSelection, updateRadarChart } from './modules/radar-chart.js';
-import { setupBulletYearSelector } from './modules/bullet-graph.js';
+import { setupBulletYearSelector, resetBulletYearSelector } from './modules/bullet-graph.js';
 import { createChoroplethMap, setupChoroplethControls } from './modules/choropleth-map.js';
 import { renderCountrySelectorMap, refreshCountrySelectorMap } from './modules/country-selector-map.js';
-import { createScatterPlot, setupScatterControls } from './modules/scatter-plot.js';
+import { createScatterPlot, setupScatterControls, resetScatterControls } from './modules/scatter-plot.js';
 import { initSmoothScroll } from './modules/utils.js';
+import { renderEmptyState, startEmptyStateObserver } from './modules/empty-state.js';
 
 /**
  * Initialize visualizations when DOM is loaded
@@ -20,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log("D3.js version:", d3.version);
 
     // Initialize all visualizations
+    startEmptyStateObserver();
     initializeApp();
 });
 
@@ -60,12 +62,33 @@ async function loadAndDisplayInflationData(country = "Portugal") {
         const data = await loadInflationByCategories(country);
         if (data) {
             createInflationCategoriesChart(data, country);
+            d3.select("#year-selection-container").style("display", "none");
         } else {
+            resetInflationCategoriesState();
+            d3.select("#category-filter-container").html("");
+            d3.select("#year-checkboxes").html("");
+            d3.select("#year-selection-container").style("display", "none");
             d3.select("#viz-inflation-categories")
-                .html("<div style='text-align: center; padding: 50px; color: #e74c3c;'><p>Erro ao carregar dados</p></div>");
+                .html(renderEmptyState({
+                    title: "Sem dados de inflação",
+                    message: "Não conseguimos carregar os indicadores de inflação por categoria para o país selecionado.",
+                    meta: "Tente escolher outro país ou atualizar a página.",
+                    icon: "📉"
+                }));
         }
     } catch (error) {
         console.error("Error in loadAndDisplayInflationData:", error);
+        resetInflationCategoriesState();
+        d3.select("#category-filter-container").html("");
+        d3.select("#year-checkboxes").html("");
+        d3.select("#year-selection-container").style("display", "none");
+        d3.select("#viz-inflation-categories")
+            .html(renderEmptyState({
+                title: "Erro ao apresentar a inflação",
+                message: "Ocorreu um problema ao preparar esta visualização.",
+                meta: `Detalhes técnicos: ${error.message}`,
+                icon: "⚠️"
+            }));
     }
 }
 
@@ -78,11 +101,25 @@ async function loadAndDisplayBulletGraph(country = "Portugal") {
         if (bulletData) {
             setupBulletYearSelector(bulletData, country);
         } else {
+            resetBulletYearSelector();
             d3.select("#viz-bullet-graph")
-                .html("<div style='text-align: center; padding: 50px; color: #e74c3c;'><p>Erro ao carregar dados do salário</p></div>");
+                .html(renderEmptyState({
+                    title: "Sem dados de salário mínimo",
+                    message: "Não encontrámos informação suficiente para comparar o salário mínimo deste país.",
+                    meta: "Selecione outro país ou ano para continuar.",
+                    icon: "💶"
+                }));
         }
     } catch (error) {
         console.error("Error in loadAndDisplayBulletGraph:", error);
+        resetBulletYearSelector('Erro ao carregar anos');
+        d3.select("#viz-bullet-graph")
+            .html(renderEmptyState({
+                title: "Erro ao carregar a visualização",
+                message: "Algo correu mal ao preparar o gráfico de salário mínimo.",
+                meta: `Detalhes técnicos: ${error.message}`,
+                icon: "⚠️"
+            }));
     }
 }
 
@@ -97,12 +134,22 @@ async function loadAndDisplayChoroplethMap(country = "Portugal") {
             await createChoroplethMap(hicpData, country);
         } else {
             d3.select("#viz-choropleth-map")
-                .html("<div style='text-align: center; padding: 50px; color: #e74c3c;'><p>Erro ao carregar dados HICP</p></div>");
+                .html(renderEmptyState({
+                    title: "Sem dados HICP",
+                    message: "Não conseguimos obter o índice harmonizado de preços no consumidor para esta seleção.",
+                    meta: "Experimente atualizar ou escolher outro país para continuar.",
+                    icon: "🗺️"
+                }));
         }
     } catch (error) {
         console.error("Error in loadAndDisplayChoroplethMap:", error);
         d3.select("#viz-choropleth-map")
-            .html("<div style='text-align: center; padding: 50px; color: #e74c3c;'><p>Erro ao carregar mapa: " + error.message + "</p></div>");
+            .html(renderEmptyState({
+                title: "Erro ao carregar o mapa",
+                message: "Ocorreu um problema ao renderizar o mapa temático da Europa.",
+                meta: `Detalhes técnicos: ${error.message}`,
+                icon: "⚠️"
+            }));
     }
 }
 
@@ -168,13 +215,25 @@ async function loadAndDisplayScatterPlot(country = "Portugal") {
         if (scatterData) {
             setupScatterControls(scatterData, country);
         } else {
+            resetScatterControls();
             d3.select("#viz-scatter-plot")
-                .html("<div style='text-align: center; padding: 50px; color: #e74c3c;'><p>Erro ao carregar dados de rendimento e inflação</p></div>");
+                .html(renderEmptyState({
+                    title: "Dados insuficientes",
+                    message: "Não há registos suficientes para cruzar rendimento e inflação neste período.",
+                    meta: "Selecione outro país ou intervalo temporal.",
+                    icon: "📊"
+                }));
         }
     } catch (error) {
         console.error("Error in loadAndDisplayScatterPlot:", error);
+        resetScatterControls();
         d3.select("#viz-scatter-plot")
-            .html("<div style='text-align: center; padding: 50px; color: #e74c3c;'><p>Erro ao carregar scatter plot: " + error.message + "</p></div>");
+            .html(renderEmptyState({
+                title: "Erro ao carregar o scatter plot",
+                message: "Ocorreu um problema ao preparar esta visualização comparativa.",
+                meta: `Detalhes técnicos: ${error.message}`,
+                icon: "⚠️"
+            }));
     }
 }
 
@@ -202,11 +261,13 @@ function setupVisualizationControls() {
         btnTimeline.classed("active", true);
         btnRadar.classed("active", false);
         yearSelectionContainer.style("display", "none");
-        categoryFilterContainer.style("display", "block");
 
         const data = await getCachedData(window.currentCountry);
         if (data) {
+            categoryFilterContainer.style("display", "block");
             createInflationCategoriesChart(data, window.currentCountry);
+        } else {
+            categoryFilterContainer.style("display", "none");
         }
     });
 
@@ -214,12 +275,14 @@ function setupVisualizationControls() {
     btnRadar.on("click", async function() {
         btnTimeline.classed("active", false);
         btnRadar.classed("active", true);
-        yearSelectionContainer.style("display", "block");
         categoryFilterContainer.style("display", "none");
 
         const data = await getCachedData(window.currentCountry);
-        if (data) {
+        if (data && data.categories?.length) {
+            yearSelectionContainer.style("display", "block");
             setupYearSelection(data, updateRadarChart, window.currentCountry);
+        } else {
+            yearSelectionContainer.style("display", "none");
         }
     });
 }
@@ -230,11 +293,10 @@ function setupVisualizationControls() {
 function setupCountrySelector() {
     const countryCards = d3.selectAll(".country-card");
 
-    // Disabled: Only the map selector should trigger country changes
-    // countryCards.on("click", async function() {
-    //     const selectedCountry = d3.select(this).attr("data-country");
-    //     await changeCountry(selectedCountry);
-    // });
+    countryCards.on("click", async function() {
+        const selectedCountry = d3.select(this).attr("data-country");
+        await changeCountry(selectedCountry);
+    });
 }
 
 // Export functions for global access if needed
