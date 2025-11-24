@@ -226,7 +226,8 @@ function updateComparisonSelectedLabel(country) {
         if (!country) {
             meta.text('Ainda não existe um país de comparação selecionado.');
         } else if (country === BASE_COUNTRY) {
-            meta.text('A comparação está alinhada com o país de referência.');
+            // This should never happen due to validation in applyComparisonSelection
+            meta.text('Não é possível comparar Portugal consigo mesmo.');
         } else {
             meta.text('Sincronizado automaticamente com o mapa interativo.');
         }
@@ -234,8 +235,26 @@ function updateComparisonSelectedLabel(country) {
 }
 
 async function applyComparisonSelection(country) {
-    const normalized = normalizeToKnownCountry(country);
+    let normalized = normalizeToKnownCountry(country);
     pendingComparisonSelection = null;
+
+    // Prevent comparing Portugal with itself
+    if (normalized === BASE_COUNTRY) {
+        console.log(`[Comparison] Cannot compare ${BASE_COUNTRY} with itself, selecting fallback`);
+        // Try to select the default secondary country
+        if (state.countries.includes(DEFAULT_SECONDARY_COUNTRY) && DEFAULT_SECONDARY_COUNTRY !== BASE_COUNTRY) {
+            normalized = DEFAULT_SECONDARY_COUNTRY;
+        } else {
+            // Otherwise pick the first available country that isn't Portugal
+            const fallback = state.countries.find(c => c !== BASE_COUNTRY);
+            normalized = fallback || null;
+        }
+        updateComparisonSelectedLabel(normalized);
+        if (!normalized) {
+            console.warn('[Comparison] No alternative country available');
+            return;
+        }
+    }
 
     if (state.selected.b === normalized) {
         updateComparisonSelectedLabel(normalized);
