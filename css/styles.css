@@ -946,8 +946,9 @@ body {
 }
 
 .diff-base-note {
-    font-size: 500;
-    color: #f0f9ff;
+    font-size: 0.95rem;
+    color: #ffffff !important;
+    opacity: 1;
     font-weight: 600;
     margin: 0;
     text-align: center;
