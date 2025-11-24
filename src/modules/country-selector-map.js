@@ -33,6 +33,55 @@ function getFeatureCountryName(feature) {
     return feature?.properties?.name;
 }
 
+function ensureTooltip() {
+    if (!tooltip || tooltip.empty() || !document.body.contains(tooltip.node())) {
+        tooltip = d3.select('body').append('div')
+            .attr('class', 'map-tooltip selector-tooltip')
+            .style('opacity', 0)
+            .style('pointer-events', 'none');
+    }
+    return tooltip;
+}
+
+function getDisplayName(feature) {
+    const englishName = getFeatureCountryName(feature);
+    if (!englishName) {
+        return 'País';
+    }
+    return resolveToPortuguese(englishName) || englishName;
+}
+
+function positionTooltip(event, tooltipSelection) {
+    const tooltipNode = tooltipSelection.node();
+    if (!tooltipNode) {
+        return;
+    }
+
+    const tooltipWidth = tooltipNode.offsetWidth;
+    const tooltipHeight = tooltipNode.offsetHeight;
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+
+    let left = event.clientX + 15;
+    let top = event.clientY - tooltipHeight - 12;
+
+    if (left + tooltipWidth > windowWidth - 16) {
+        left = event.clientX - tooltipWidth - 15;
+    }
+    if (left < 12) {
+        left = 12;
+    }
+    if (top < 12) {
+        top = event.clientY + 15;
+    }
+    if (top + tooltipHeight > windowHeight - 12) {
+        top = windowHeight - tooltipHeight - 12;
+    }
+
+    tooltipSelection.style('left', `${left}px`)
+        .style('top', `${top}px`);
+}
+
 function matchesSelection(feature, selectedCountry) {
     if (!selectedCountry) {
         return false;
@@ -146,10 +195,7 @@ export async function renderCountrySelectorMap() {
             .attr('height', svgHeight)
             .attr('fill', 'url(#mapBgGradient)');
 
-        d3.selectAll('.selector-tooltip').remove();
-        tooltip = d3.select('body').append('div')
-            .attr('class', 'map-tooltip selector-tooltip')
-            .style('opacity', 0);
+        ensureTooltip();
 
         const projection = d3.geoMercator()
             .center([15, 54])
@@ -172,55 +218,25 @@ export async function renderCountrySelectorMap() {
             .attr('stroke', strokeColor)
             .attr('stroke-width', strokeWidth)
             .style('cursor', 'pointer')
-            .on('mouseover', (event, d) => {
+            .on('pointerenter', (event, d) => {
                 const target = d3.select(event.currentTarget);
                 target.transition().duration(200)
                     .attr('fill', hoverCountryFill)
                     .attr('stroke-width', 2)
                     .attr('opacity', 0.95);
 
-                tooltip.transition().duration(200).style('opacity', 1);
-                tooltip.html(`<strong>${getFeatureCountryName(d) || 'País'}</strong>`);
-
-                const tooltipNode = tooltip.node();
-                const tooltipWidth = tooltipNode.offsetWidth;
-                const tooltipHeight = tooltipNode.offsetHeight;
-                const windowWidth = window.innerWidth;
-
-                let left = event.clientX + 15;
-                let top = event.clientY - tooltipHeight - 12;
-
-                if (left + tooltipWidth > windowWidth - 16) {
-                    left = event.clientX - tooltipWidth - 15;
-                }
-                if (top < 12) {
-                    top = event.clientY + 15;
-                }
-
-                tooltip.style('left', left + 'px')
-                    .style('top', top + 'px');
+                const tooltipSelection = ensureTooltip();
+                tooltipSelection.interrupt().style('opacity', 1);
+                tooltipSelection.html(`<strong>${getDisplayName(d)}</strong>`);
+                positionTooltip(event, tooltipSelection);
             })
-            .on('mousemove', (event) => {
-                const tooltipNode = tooltip.node();
-                const tooltipWidth = tooltipNode.offsetWidth;
-                const tooltipHeight = tooltipNode.offsetHeight;
-                const windowWidth = window.innerWidth;
-
-                let left = event.clientX + 15;
-                let top = event.clientY - tooltipHeight - 12;
-
-                if (left + tooltipWidth > windowWidth - 16) {
-                    left = event.clientX - tooltipWidth - 15;
-                }
-                if (top < 12) {
-                    top = event.clientY + 15;
-                }
-
-                tooltip.style('left', left + 'px')
-                    .style('top', top + 'px');
+            .on('pointermove', (event) => {
+                const tooltipSelection = ensureTooltip();
+                positionTooltip(event, tooltipSelection);
             })
-            .on('mouseout', () => {
-                tooltip.transition().duration(250).style('opacity', 0);
+            .on('pointerleave', () => {
+                const tooltipSelection = ensureTooltip();
+                tooltipSelection.interrupt().style('opacity', 0);
                 applyCountryFills(window.currentCountry);
             })
             .on('click', (_, d) => handleCountryClick(d));

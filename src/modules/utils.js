@@ -53,23 +53,18 @@ export function initSmoothScroll() {
 export function initBackToTop() {
     const button = document.getElementById('back-to-top');
     if (!button) {
-        console.error('Back-to-top button not found in DOM');
         return;
     }
-
-    console.log('Back-to-top button initialized');
 
     const toggleVisibility = () => {
         if (window.scrollY > 400) {
             button.classList.add('visible');
-            console.log('Button visible at scroll:', window.scrollY);
         } else {
             button.classList.remove('visible');
         }
     };
 
     button.addEventListener('click', () => {
-        console.log('Back-to-top button clicked');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 

@@ -11,7 +11,7 @@ import { renderEmptyState } from './empty-state.js';
  * @param {number} baseNominal - Nominal wage in the selected base year
  * @param {string} country - Country name for title
  */
-export function createBulletGraph(yearData, baseNominal, country = "Portugal", baseYear = 2012) {
+export function createBulletGraph(yearData, baseNominal, country = "Portugal", baseYear = 2020) {
     const container = d3.select("#viz-bullet-graph");
     container.html("");
 

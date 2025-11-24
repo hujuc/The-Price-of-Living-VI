@@ -14,7 +14,7 @@ const currencyFormatter = new Intl.NumberFormat('pt-PT', {
     maximumFractionDigits: 0
 });
 const INFLATION_THRESHOLD = 5; // %
-const WAGE_INDEX_THRESHOLD = 100; // base 2012
+const WAGE_INDEX_THRESHOLD = 100; // base 2020
 
 const state = {
     countries: [],
@@ -22,6 +22,9 @@ const state = {
     data: { a: null, b: null },
     normalized: null
 };
+
+let comparisonModuleReady = false;
+let pendingComparisonSelection = null;
 
 export async function initCountryComparison() {
     const container = d3.select('#country-comparison');
@@ -48,17 +51,19 @@ export async function initCountryComparison() {
         }
 
         state.countries = countries;
-        populateSelectors(countries);
-        attachSelectorEvents();
-
-        const secondary = resolveSecondaryCountry(countries);
+        const secondary = determineInitialComparisonCountry();
         state.selected = { a: BASE_COUNTRY, b: secondary };
-        d3.select('#comparison-country-b').property('value', secondary);
+        updateComparisonSelectedLabel(secondary);
 
         await Promise.all([
             refreshSide('a', BASE_COUNTRY),
             refreshSide('b', secondary)
         ]);
+
+        comparisonModuleReady = true;
+        if (pendingComparisonSelection != null) {
+            await applyComparisonSelection(pendingComparisonSelection);
+        }
     } catch (error) {
         console.error('Country comparison failed:', error);
         container.html(renderEmptyState({
@@ -68,6 +73,14 @@ export async function initCountryComparison() {
             icon: '⚠️'
         }));
     }
+}
+
+export async function syncComparisonCountry(country) {
+    pendingComparisonSelection = country || null;
+    if (!comparisonModuleReady) {
+        return;
+    }
+    await applyComparisonSelection(pendingComparisonSelection);
 }
 
 function renderLayout(container) {
@@ -81,11 +94,12 @@ function renderLayout(container) {
                 </div>
             </div>
             <div class="comparison-control">
-                <label for="comparison-country-b">Comparar com</label>
-                <select id="comparison-country-b" class="comparison-select">
-                    <option value="">A carregar…</option>
-                </select>
-                <p class="comparison-hint">Selecione qualquer país da lista para o comparar com ${BASE_COUNTRY}.</p>
+                <span class="control-label">Comparar com</span>
+                <div class="base-country-pill comparison-country-pill">
+                    <div class="pill-name" id="comparison-selected-country">Aguardando seleção…</div>
+                    <div class="pill-meta" id="comparison-selected-meta">Sincronizado com o país escolhido no mapa interativo.</div>
+                </div>
+                <p class="comparison-hint">Use o mapa de seleção no topo da página para alterar o país de comparação.</p>
             </div>
         </div>
 
@@ -177,33 +191,60 @@ function renderCardSkeleton() {
     `;
 }
 
-function populateSelectors(countries) {
-    const selectB = d3.select('#comparison-country-b');
-    const comparisonCountries = countries.filter(country => country !== BASE_COUNTRY);
-    const options = comparisonCountries.length ? comparisonCountries : [BASE_COUNTRY];
+function determineInitialComparisonCountry() {
+    const globalSelection = typeof window !== 'undefined' ? window.currentCountry : null;
+    if (globalSelection && globalSelection !== BASE_COUNTRY) {
+        return normalizeToKnownCountry(globalSelection);
+    }
 
-    selectB.selectAll('option')
-        .data(options)
-        .join('option')
-        .attr('value', d => d)
-        .text(d => d);
-}
-
-function attachSelectorEvents() {
-    d3.select('#comparison-country-b').on('change', async function() {
-        const value = this.value;
-        state.selected.b = value;
-        await refreshSide('b', value);
-    });
-}
-
-function resolveSecondaryCountry(countries) {
-    if (countries.includes(DEFAULT_SECONDARY_COUNTRY) && DEFAULT_SECONDARY_COUNTRY !== BASE_COUNTRY) {
+    if (state.countries.includes(DEFAULT_SECONDARY_COUNTRY) && DEFAULT_SECONDARY_COUNTRY !== BASE_COUNTRY) {
         return DEFAULT_SECONDARY_COUNTRY;
     }
 
-    const fallback = countries.find(country => country !== BASE_COUNTRY);
-    return fallback || BASE_COUNTRY;
+    const fallback = state.countries.find(country => country !== BASE_COUNTRY);
+    return fallback || null;
+}
+
+function normalizeToKnownCountry(countryName, list = state.countries) {
+    if (!countryName || !countryName.trim()) {
+        return null;
+    }
+    const trimmed = countryName.trim();
+    const match = list?.find(entry => entry.toLowerCase() === trimmed.toLowerCase());
+    return match || trimmed;
+}
+
+function updateComparisonSelectedLabel(country) {
+    const label = d3.select('#comparison-selected-country');
+    const meta = d3.select('#comparison-selected-meta');
+
+    if (!label.empty()) {
+        label.text(country || 'Selecione um país no mapa');
+    }
+
+    if (!meta.empty()) {
+        if (!country) {
+            meta.text('Ainda não existe um país de comparação selecionado.');
+        } else if (country === BASE_COUNTRY) {
+            meta.text('A comparação está alinhada com o país de referência.');
+        } else {
+            meta.text('Sincronizado automaticamente com o mapa interativo.');
+        }
+    }
+}
+
+async function applyComparisonSelection(country) {
+    const normalized = normalizeToKnownCountry(country);
+    pendingComparisonSelection = null;
+
+    if (state.selected.b === normalized) {
+        updateComparisonSelectedLabel(normalized);
+        return;
+    }
+
+    state.selected.b = normalized;
+    updateComparisonSelectedLabel(normalized);
+    await refreshSide('b', normalized);
 }
 
 async function refreshSide(side, country) {
@@ -780,8 +821,8 @@ function findSharedBaseYear(snapshotA, snapshotB) {
         return null;
     }
 
-    if (sharedYears.includes(2012)) {
-        return 2012;
+    if (sharedYears.includes(2020)) {
+        return 2020;
     }
 
     return sharedYears[0];

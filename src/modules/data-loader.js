@@ -319,9 +319,9 @@ export async function loadMinimumWageData(country = "Portugal") {
 
 /**
  * Calculate real wage adjusted for inflation
- * Base year is 2012
+ * Base year is 2020
  */
-export function calculateRealWage(nominalWage, inflationData, year, baseYear = 2012) {
+export function calculateRealWage(nominalWage, inflationData, year, baseYear = 2020) {
     if (!inflationData || !inflationData.categories?.length) {
         return null;
     }
@@ -384,7 +384,7 @@ export async function loadBulletGraphData(country = "Portugal") {
             return null;
         }
 
-        const baseYear = availableYears.includes(2012) ? 2012 : availableYears[0];
+        const baseYear = availableYears.includes(2020) ? 2020 : availableYears[0];
         const baseNominal = wageData[baseYear];
 
         if (!baseNominal) {
@@ -478,7 +478,7 @@ export async function loadCountryComparisonSnapshot(country = "Portugal") {
                 }));
                 const latestYear = wageYears[wageYears.length - 1];
                 const nominalValue = wageData[latestYear];
-                const baseYear = wageYears.includes(2012) ? 2012 : wageYears[0];
+                const baseYear = wageYears.includes(2020) ? 2020 : wageYears[0];
                 const baseNominal = wageData[baseYear];
                 const realValue = (nominalValue != null && inflationData)
                     ? calculateRealWage(nominalValue, inflationData, latestYear, baseYear)

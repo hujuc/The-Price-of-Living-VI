@@ -12,7 +12,7 @@ import { renderCountrySelectorMap, refreshCountrySelectorMap } from './modules/c
 import { createScatterPlot, setupScatterControls, resetScatterControls } from './modules/scatter-plot.js';
 import * as utils from './modules/utils.js';
 import { renderEmptyState, startEmptyStateObserver } from './modules/empty-state.js';
-import { initCountryComparison } from './modules/country-comparison.js';
+import { initCountryComparison, syncComparisonCountry } from './modules/country-comparison.js';
 
 /**
  * Initialize visualizations when DOM is loaded
@@ -48,12 +48,7 @@ async function initializeApp() {
 
     // Setup navigation and controls
     utils.initSmoothScroll();
-    console.log('Initializing back-to-top button...');
-    if (typeof utils.initBackToTop === 'function') {
-        utils.initBackToTop();
-    } else {
-        console.error('initBackToTop function not found in utils module');
-    }
+    if (typeof utils.initBackToTop === 'function') utils.initBackToTop();
     setupVisualizationControls();
     setupCountrySelector();
     updateCountryCardState(window.currentCountry);
@@ -165,6 +160,7 @@ let isChangingCountry = false;
 
 async function changeCountry(selectedCountry, options = {}) {
     const targetCountry = selectedCountry || "Portugal";
+    console.log("[changeCountry] requested:", targetCountry);
 
     if (isChangingCountry) {
         return;
@@ -188,6 +184,11 @@ async function changeCountry(selectedCountry, options = {}) {
     window.currentCountry = targetCountry;
     updateCountryCardState(targetCountry);
     refreshCountrySelectorMap(targetCountry);
+    try {
+        await syncComparisonCountry(targetCountry);
+    } catch (error) {
+        console.warn('[changeCountry] Failed to sync comparison module', error);
+    }
 
     try {
         await loadAndDisplayInflationData(targetCountry);
