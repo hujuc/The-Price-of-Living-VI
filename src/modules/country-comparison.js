@@ -103,31 +103,31 @@ function renderLayout(container) {
             </div>
         </div>
 
-        <div class="comparison-panels">
+        <div class="comparison-cards-row">
             <div class="comparison-card" data-side="a">
                 ${renderCardSkeleton()}
-            </div>
-
-            <div class="comparison-diff" id="comparison-diff">
-                <div class="diff-title">Resumo textual da comparação</div>
-                <div class="diff-section" id="diff-salary-absolute">
-                    <h5>1. Salário atual em euros</h5>
-                    <p id="diff-salary-text">Selecione um país no mapa para iniciar a comparação.</p>
-                </div>
-                <div class="diff-section" id="diff-index-evolution">
-                    <h5>2. Evolução do índice real desde 2020</h5>
-                    <p id="diff-index-text">Ainda não existem dois países com dados comparáveis.</p>
-                </div>
-                <div class="diff-section conclusion" id="diff-conclusion">
-                    <h5>3. Como interpretar</h5>
-                    <p id="diff-conclusion-text">Use os valores em euros para comparar o nível atual e o índice para ler a trajetória.</p>
-                </div>
-                <p class="diff-base-note" id="diff-base-note">A aguardar seleção para alinhar uma base comum.</p>
             </div>
 
             <div class="comparison-card" data-side="b">
                 ${renderCardSkeleton()}
             </div>
+        </div>
+
+        <div class="comparison-diff" id="comparison-diff">
+            <div class="diff-title">Resumo textual da comparação</div>
+            <div class="diff-section" id="diff-salary-absolute">
+                <h5>1. Salário atual em euros</h5>
+                <p id="diff-salary-text">Selecione um país no mapa para iniciar a comparação.</p>
+            </div>
+            <div class="diff-section" id="diff-index-evolution">
+                <h5>2. Evolução do índice real desde 2020</h5>
+                <p id="diff-index-text">Ainda não existem dois países com dados comparáveis.</p>
+            </div>
+            <div class="diff-section conclusion" id="diff-conclusion">
+                <h5>3. Como interpretar</h5>
+                <p id="diff-conclusion-text">Use os valores em euros para comparar o nível atual e o índice para ler a trajetória.</p>
+            </div>
+            <p class="diff-base-note" id="diff-base-note">A aguardar seleção para alinhar uma base comum.</p>
         </div>
 
         <div class="comparison-chart-wrapper">
