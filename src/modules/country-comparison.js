@@ -109,18 +109,18 @@ function renderLayout(container) {
             </div>
 
             <div class="comparison-diff" id="comparison-diff">
-                <div class="diff-title">Diferenças rápidas</div>
-                <div class="diff-grid">
-                    <div class="diff-card" data-metric="inflation">
-                        <div class="diff-label">Inflação total</div>
-                        <div class="diff-value" id="diff-inflation-value">Selecione dois países</div>
-                        <div class="diff-meta" id="diff-inflation-meta"></div>
-                    </div>
-                    <div class="diff-card" data-metric="wage">
-                        <div class="diff-label">Salário real ajustado (€)</div>
-                        <div class="diff-value" id="diff-wage-value">Selecione dois países</div>
-                        <div class="diff-meta" id="diff-wage-meta"></div>
-                    </div>
+                <div class="diff-title">Resumo textual da comparação</div>
+                <div class="diff-section" id="diff-salary-absolute">
+                    <h5>1. Salário atual em euros</h5>
+                    <p id="diff-salary-text">Selecione um país no mapa para iniciar a comparação.</p>
+                </div>
+                <div class="diff-section" id="diff-index-evolution">
+                    <h5>2. Evolução do índice real desde 2020</h5>
+                    <p id="diff-index-text">Ainda não existem dois países com dados comparáveis.</p>
+                </div>
+                <div class="diff-section conclusion" id="diff-conclusion">
+                    <h5>3. Como interpretar</h5>
+                    <p id="diff-conclusion-text">Use os valores em euros para comparar o nível atual e o índice para ler a trajetória.</p>
                 </div>
                 <p class="diff-base-note" id="diff-base-note">A aguardar seleção para alinhar uma base comum.</p>
             </div>
@@ -344,97 +344,171 @@ function renderCard(card, snapshot) {
 }
 
 function updateDiffSummary() {
-    const diffInflationValue = d3.select('#diff-inflation-value');
-    const diffInflationMeta = d3.select('#diff-inflation-meta');
-    const diffWageValue = d3.select('#diff-wage-value');
-    const diffWageMeta = d3.select('#diff-wage-meta');
-    const diffWageLabel = d3.select('[data-metric="wage"] .diff-label');
+    const salaryNode = d3.select('#diff-salary-text');
+    const indexNode = d3.select('#diff-index-text');
+    const conclusionNode = d3.select('#diff-conclusion-text');
     const diffBaseNote = d3.select('#diff-base-note');
 
-    const normalizedBaseYear = state.normalized?.baseYear;
-    if (!diffWageLabel.empty()) {
-        diffWageLabel.text('Salário real ajustado (€)');
-    }
+    const snapshotA = state.data.a;
+    const snapshotB = state.data.b;
 
+    const normalizedBaseYear = state.normalized?.baseYear;
     if (!diffBaseNote.empty()) {
         diffBaseNote.text(normalizedBaseYear
-            ? `A comparação de salário real foi alinhada ao ano ${normalizedBaseYear}, garantindo o mesmo ponto de partida.`
-            : 'Sem um ano em comum, cada país mantém o seu ponto de partida original.');
+            ? `Os índices foram alinhados ao ano ${normalizedBaseYear} = 100 para garantir a mesma linha de partida.`
+            : 'Sem ano base comum, cada país mantém o seu próprio índice histórico.');
     }
 
-    describeDifference({
-        metricLabel: 'inflação',
-        unit: 'p.p.',
-        formatter: formatPercent,
-        valueA: state.data.a?.inflation?.value,
-        valueB: state.data.b?.inflation?.value,
-        valueTarget: diffInflationValue,
-        metaTarget: diffInflationMeta
-    });
+    if (!snapshotA || !snapshotB) {
+        salaryNode.text('Selecione dois países com dados completos para ver o salário nominal e real.');
+        indexNode.text('Este bloco fica disponível quando existir informação para ambos os países.');
+        conclusionNode.text('Assim que houver dados comparáveis, apresentaremos a distinção entre nível atual e evolução.');
+        return;
+    }
 
-    const realBaseNote = normalizedBaseYear
-        ? `Base comum ${normalizedBaseYear} = 100`
-        : buildBaseNoteForRealWage();
+    const salarySummary = buildSalaryLevelSummary(snapshotA, snapshotB);
+    const indexSummary = buildIndexEvolutionSummary(snapshotA, snapshotB);
+    const conclusionSummary = buildComparisonConclusion(snapshotA, snapshotB, salarySummary.leader, indexSummary.leader);
 
-    describeDifference({
-        metricLabel: 'o salário real ajustado',
-        unit: '',
-        formatter: formatCurrency,
-        valueA: getRealWageValue('a'),
-        valueB: getRealWageValue('b'),
-        valueTarget: diffWageValue,
-        metaTarget: diffWageMeta,
-        metaExtra: realBaseNote,
-        differenceFormatter: formatCurrency
-    });
+    salaryNode.text(salarySummary.text);
+    indexNode.text(indexSummary.text);
+    conclusionNode.text(conclusionSummary);
 }
 
-function describeDifference({ metricLabel, unit, formatter, valueA, valueB, valueTarget, metaTarget, metaExtra = null, differenceFormatter = null }) {
-    const nameA = state.data.a?.displayName || 'País A';
-    const nameB = state.data.b?.displayName || 'País B';
+function buildSalaryLevelSummary(snapshotA, snapshotB) {
+    const nameA = getCountryLabel('a');
+    const nameB = getCountryLabel('b');
+    const nominalA = snapshotA?.wage?.nominal;
+    const nominalB = snapshotB?.wage?.nominal;
+    const realA = getRealWageValue('a');
+    const realB = getRealWageValue('b');
 
-    if (valueA == null || valueB == null) {
-        valueTarget.text('Sem dados comparáveis');
-        const fallbackText = 'Escolha países com dados disponíveis para ambos os indicadores.';
-        if (metaExtra) {
-            metaTarget.html(`${fallbackText}<br/><small>${metaExtra}</small>`);
-        } else {
-            metaTarget.text(fallbackText);
+    const sentences = [];
+
+    if (nominalA != null || realA != null) {
+        if (nominalA != null && realA != null) {
+            sentences.push(`${nameA} paga ${formatCurrency(nominalA)} e, descontando a inflação, isso equivale a ${formatCurrency(realA)} de poder de compra real.`);
+        } else if (nominalA != null) {
+            sentences.push(`${nameA} paga ${formatCurrency(nominalA)} de salário mínimo nominal.`);
+        } else if (realA != null) {
+            sentences.push(`${nameA} regista ${formatCurrency(realA)} de salário real ajustado.`);
         }
-        valueTarget.attr('data-leader', 'none');
-        return;
     }
 
-    const diff = valueA - valueB;
-    if (Math.abs(diff) < 0.05) {
-        valueTarget.text('Valores muito próximos');
-        const metaText = `${nameA}: ${formatter(valueA)} • ${nameB}: ${formatter(valueB)}`;
-        if (metaExtra) {
-            metaTarget.html(`${metaText}<br/><small>${metaExtra}</small>`);
-        } else {
-            metaTarget.text(metaText);
+    if (nominalB != null || realB != null) {
+        if (nominalB != null && realB != null) {
+            sentences.push(`${nameB} oferece ${formatCurrency(nominalB)} nominais e ${formatCurrency(realB)} após o ajuste da inflação.`);
+        } else if (nominalB != null) {
+            sentences.push(`${nameB} oferece ${formatCurrency(nominalB)} de salário mínimo nominal.`);
+        } else if (realB != null) {
+            sentences.push(`${nameB} apresenta ${formatCurrency(realB)} de salário real ajustado.`);
         }
-        valueTarget.attr('data-leader', 'tie');
-        return;
     }
 
-    const leaderName = diff > 0 ? nameA : nameB;
-    const trailingName = diff > 0 ? nameB : nameA;
-    const leaderValue = diff > 0 ? valueA : valueB;
-    const trailingValue = diff > 0 ? valueB : valueA;
-    const qualifier = diff > 0 ? 'mais' : 'menos';
-    const diffText = differenceFormatter
-        ? differenceFormatter(Math.abs(diff))
-        : formatDifference(Math.abs(diff), unit);
+    let leader = null;
+    if (realA != null && realB != null) {
+        const diff = realA - realB;
+        if (Math.abs(diff) < 25) {
+            sentences.push('Os dois países apresentam níveis de poder de compra real muito próximos no momento atual.');
+            leader = 'tie';
+        } else if (diff > 0) {
+            sentences.push(`${nameA} garante hoje o maior poder de compra real, com uma margem de ${formatCurrency(Math.abs(diff))} face a ${nameB}.`);
+            leader = 'a';
+        } else {
+            sentences.push(`${nameB} garante hoje o maior poder de compra real, com uma vantagem de ${formatCurrency(Math.abs(diff))} em relação a ${nameA}.`);
+            leader = 'b';
+        }
+    }
 
-    valueTarget.text(`${leaderName} tem ${diffText} ${qualifier} ${metricLabel} que ${trailingName}`);
-    valueTarget.attr('data-leader', diff > 0 ? 'a' : 'b');
-    const metaText = `${leaderName}: ${formatter(leaderValue)} • ${trailingName}: ${formatter(trailingValue)}`;
-    if (metaExtra) {
-        metaTarget.html(`${metaText}<br/><small>${metaExtra}</small>`);
+    if (!sentences.length) {
+        return {
+            text: 'Ainda não existem dados salariais suficientes para uma comparação direta.',
+            leader: null
+        };
+    }
+
+    return {
+        text: sentences.join(' '),
+        leader
+    };
+}
+
+function buildIndexEvolutionSummary(snapshotA, snapshotB) {
+    const nameA = getCountryLabel('a');
+    const nameB = getCountryLabel('b');
+    const baseYear = state.normalized?.baseYear || snapshotA?.wage?.baseYear || snapshotB?.wage?.baseYear;
+    const indexA = safeNumber(state.normalized?.a?.wageIndex ?? snapshotA?.wage?.index);
+    const indexB = safeNumber(state.normalized?.b?.wageIndex ?? snapshotB?.wage?.index);
+
+    if (indexA == null && indexB == null) {
+        return {
+            text: 'Ainda não conseguimos medir a evolução desde 2020 porque faltam dados de índice real para ambos os países.',
+            leader: null
+        };
+    }
+
+    const sentences = [];
+    const basePhrase = baseYear ? ` (base ${baseYear} = 100)` : '';
+    if (indexA != null) {
+        sentences.push(`${nameA} está nos ${Math.round(indexA)} pontos do índice real${basePhrase}.`);
+    }
+    if (indexB != null) {
+        sentences.push(`${nameB} regista ${Math.round(indexB)} pontos${basePhrase}.`);
+    }
+
+    let leader = null;
+    if (indexA != null && indexB != null) {
+        const diff = indexA - indexB;
+        if (Math.abs(diff) < 2) {
+            sentences.push('A evolução relativa desde o ano base é praticamente idêntica nos dois países.');
+            leader = 'tie';
+        } else if (diff > 0) {
+            sentences.push(`${nameA} foi o país que mais progrediu desde o ano base, subindo ${Math.round(Math.abs(diff))} pontos acima de ${nameB}.`);
+            leader = 'a';
+        } else {
+            sentences.push(`${nameB} avançou mais em termos relativos, com ${Math.round(Math.abs(diff))} pontos adicionais face a ${nameA}.`);
+            leader = 'b';
+        }
+    }
+
+    return {
+        text: sentences.join(' '),
+        leader
+    };
+}
+
+function buildComparisonConclusion(snapshotA, snapshotB, absoluteLeader, trendLeader) {
+    const nameA = getCountryLabel('a');
+    const nameB = getCountryLabel('b');
+
+    const sentences = [];
+
+    if (!snapshotA || !snapshotB) {
+        sentences.push('Selecione dois países para obter uma leitura completa.');
     } else {
-        metaTarget.text(metaText);
+        if (absoluteLeader === 'a') {
+            sentences.push(`${nameA} lidera no valor real recebido hoje, por isso quem vive em ${nameA} tem atualmente mais poder de compra em euros.`);
+        } else if (absoluteLeader === 'b') {
+            sentences.push(`${nameB} lidera no valor real recebido hoje, com mais euros disponíveis do que em ${nameA}.`);
+        } else if (absoluteLeader === 'tie') {
+            sentences.push('O nível atual de poder de compra real é praticamente o mesmo nos dois países.');
+        } else {
+            sentences.push('Ainda não há dados suficientes para comparar o poder de compra atual.');
+        }
+
+        if (trendLeader === 'a') {
+            sentences.push(`${nameA} também é quem mais recuperou desde 2020, mostrando a trajetória mais favorável.`);
+        } else if (trendLeader === 'b') {
+            sentences.push(`${nameB} apresenta a maior evolução desde 2020, mesmo que o valor atual possa ser diferente.`);
+        } else if (trendLeader === 'tie') {
+            sentences.push('A evolução relativa desde 2020 é praticamente idêntica nas duas economias.');
+        } else {
+            sentences.push('Ainda não conseguimos avaliar a evolução relativa desde 2020 para ambos os países.');
+        }
     }
+
+    sentences.push('Compare sempre o nível atual em euros e a trajetória do índice como métricas complementares.');
+    return sentences.join(' ');
 }
 
 function renderComparisonChart() {
@@ -959,12 +1033,4 @@ function formatIndex(value) {
         return '—';
     }
     return `${Math.round(value)} pts`;
-}
-
-function formatDifference(value, unit = '') {
-    if (value == null || isNaN(value)) {
-        return '—';
-    }
-    const formatted = value >= 10 ? value.toFixed(0) : value.toFixed(1);
-    return `${formatted.replace('.', ',')} ${unit}`.trim();
 }
