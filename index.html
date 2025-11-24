@@ -47,48 +47,6 @@
         </div>
     </header>
 
-    <!-- Global Country Selector Section -->
-    <section id="country-selector" class="section country-selector-section">
-        <div class="container">
-            <div class="selector-header">
-                <h2>Selecione um País</h2>
-                <p>Explore como a inflação afeta diferentes países europeus</p>
-            </div>
-            <div class="selector-hint">
-                <svg class="hint-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2Z" stroke="currentColor" stroke-width="2"/>
-                    <path d="M10 6V10L13 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Clique no mapa para escolher o país que quer analisar; os gráficos abaixo seguem imediatamente a seleção.
-            </div>
-
-            <!-- Country Search Bar -->
-            <div class="country-search-container">
-                <div class="search-input-wrapper">
-                    <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="2"/>
-                        <path d="M14 14L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                    <input
-                        type="text"
-                        id="country-search-input"
-                        class="country-search-input"
-                        placeholder="Pesquisar país..."
-                        autocomplete="off"
-                    />
-                    <button id="clear-search" class="clear-search-btn" style="display: none;" aria-label="Limpar pesquisa">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        </svg>
-                    </button>
-                </div>
-                <div id="search-results" class="search-results" style="display: none;"></div>
-            </div>
-
-            <div class="country-selector-map" id="country-selector-map"></div>
-        </div>
-    </section>
-
     <!-- Introduction Section -->
     <section id="introduction" class="section">
         <div class="container">
@@ -145,6 +103,48 @@
                     <p>Mostra como é distribuído o rendimento em Portugal.</p>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <!-- Global Country Selector Section -->
+    <section id="country-selector" class="section country-selector-section">
+        <div class="container">
+            <div class="selector-header">
+                <h2>Selecione um País</h2>
+                <p>Explore como a inflação afeta diferentes países europeus</p>
+            </div>
+            <div class="selector-hint">
+                <svg class="hint-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 2C5.58172 2 2 5.58172 2 10C2 14.4183 5.58172 18 10 18C14.4183 18 18 14.4183 18 10C18 5.58172 14.4183 2 10 2Z" stroke="currentColor" stroke-width="2"/>
+                    <path d="M10 6V10L13 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Clique no mapa para escolher o país que quer analisar; os gráficos abaixo seguem imediatamente a seleção.
+            </div>
+
+            <!-- Country Search Bar -->
+            <div class="country-search-container">
+                <div class="search-input-wrapper">
+                    <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="2"/>
+                        <path d="M14 14L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <input
+                        type="text"
+                        id="country-search-input"
+                        class="country-search-input"
+                        placeholder="Pesquisar país..."
+                        autocomplete="off"
+                    />
+                    <button id="clear-search" class="clear-search-btn" style="display: none;" aria-label="Limpar pesquisa">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <div id="search-results" class="search-results" style="display: none;"></div>
+            </div>
+
+            <div class="country-selector-map" id="country-selector-map"></div>
         </div>
     </section>
 

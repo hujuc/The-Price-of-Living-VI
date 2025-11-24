@@ -677,9 +677,9 @@ body {
 
 .comparison-card {
     background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-    border-radius: 24px;
-    padding: 2rem;
-    box-shadow: 
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow:
         0 4px 20px rgba(15, 23, 42, 0.06),
         0 20px 45px rgba(15, 23, 42, 0.1);
     position: relative;
@@ -705,7 +705,7 @@ body {
 
 .comparison-card-inner {
     position: relative;
-    min-height: 260px;
+    min-height: 200px;
 }
 
 .comparison-loading {
@@ -731,7 +731,7 @@ body {
 }
 
 .comparison-country-name {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
     font-weight: 800;
     color: #0f172a;
     letter-spacing: -0.3px;
@@ -740,14 +740,14 @@ body {
 
 .comparison-updated {
     color: #64748b;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     margin-top: 0.15rem;
     font-weight: 500;
 }
 
 .comparison-metric {
-    margin-top: 1.75rem;
-    padding-bottom: 1.5rem;
+    margin-top: 1.25rem;
+    padding-bottom: 1rem;
     border-bottom: 1px solid rgba(15, 23, 42, 0.06);
 }
 
@@ -756,9 +756,9 @@ body {
 }
 
 .comparison-real {
-    margin-top: 1.75rem;
-    padding: 1.25rem 1.5rem;
-    border-radius: 18px;
+    margin-top: 1.25rem;
+    padding: 1rem 1.25rem;
+    border-radius: 16px;
     background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(5, 150, 105, 0.08) 100%);
     border: 2px solid rgba(16, 185, 129, 0.25);
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
@@ -772,7 +772,7 @@ body {
 }
 
 .real-label {
-    font-size: 0.8rem;
+    font-size: 0.7rem;
     letter-spacing: 1.2px;
     color: #065f46;
     text-transform: uppercase;
@@ -780,7 +780,7 @@ body {
 }
 
 .real-value {
-    font-size: 1.9rem;
+    font-size: 1.5rem;
     font-weight: 800;
     color: #064e3b;
     margin-top: 0.25rem;
@@ -788,7 +788,7 @@ body {
 }
 
 .real-meta {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     color: #059669;
     margin-top: 0.25rem;
     font-weight: 500;
@@ -796,31 +796,31 @@ body {
 
 .metric-label {
     text-transform: uppercase;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     letter-spacing: 1.3px;
     color: #64748b;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
     font-weight: 700;
 }
 
 .metric-value {
-    font-size: 2.2rem;
+    font-size: 1.8rem;
     font-weight: 800;
     color: #0f172a;
     letter-spacing: -0.5px;
 }
 
 .metric-meta {
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     color: #64748b;
     margin-top: 0.25rem;
     font-weight: 500;
 }
 
 .comparison-index {
-    margin-top: 1.75rem;
-    padding: 1.25rem 1.5rem;
-    border-radius: 18px;
+    margin-top: 1.25rem;
+    padding: 1rem 1.25rem;
+    border-radius: 16px;
     background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(37, 99, 235, 0.08) 100%);
     border: 2px solid rgba(59, 130, 246, 0.25);
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
@@ -834,7 +834,7 @@ body {
 }
 
 .index-label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     letter-spacing: 1.2px;
     color: #1e40af;
     text-transform: uppercase;
@@ -842,7 +842,7 @@ body {
 }
 
 .index-value {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     font-weight: 800;
     color: #1e3a8a;
     margin-top: 0.25rem;
