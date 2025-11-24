@@ -8,7 +8,7 @@ import { createInflationCategoriesChart, resetInflationCategoriesState } from '.
 import { createRadarChart, setupYearSelection, updateRadarChart } from './modules/radar-chart.js';
 import { setupBulletYearSelector, resetBulletYearSelector } from './modules/bullet-graph.js';
 import { createChoroplethMap, setupChoroplethControls } from './modules/choropleth-map.js';
-import { renderCountrySelectorMap, refreshCountrySelectorMap } from './modules/country-selector-map.js';
+import { renderCountrySelectorMap, refreshCountrySelectorMap, setupCountrySearch } from './modules/country-selector-map.js';
 import { createScatterPlot, setupScatterControls, resetScatterControls } from './modules/scatter-plot.js';
 import * as utils from './modules/utils.js';
 import { renderEmptyState, startEmptyStateObserver } from './modules/empty-state.js';
@@ -54,6 +54,7 @@ async function initializeApp() {
     updateCountryCardState(window.currentCountry);
     await renderCountrySelectorMap();
     refreshCountrySelectorMap(window.currentCountry);
+    setupCountrySearch();
     await initCountryComparison();
 }
 

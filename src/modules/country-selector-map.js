@@ -5,6 +5,7 @@ let svg = null;
 let path = null;
 let selectorGroup = null;
 let tooltip = null;
+let loadedCountries = [];
 const baseCountryFill = '#dbeafe';
 const selectedCountryFill = '#2563eb';
 const hoverCountryFill = '#60a5fa';
@@ -208,6 +209,12 @@ export async function renderCountrySelectorMap() {
 
         const geoData = await loadEuropeGeoJSON();
 
+        // Store loaded countries for search
+        loadedCountries = geoData.features
+            .map(f => resolveToPortuguese(getFeatureCountryName(f)))
+            .filter(name => name && countryNameMap[name])
+            .sort();
+
         selectorGroup.selectAll('path')
             .data(geoData.features)
             .enter()
@@ -255,4 +262,164 @@ export async function renderCountrySelectorMap() {
 
 export function refreshCountrySelectorMap(selectedCountry = window.currentCountry) {
     applyCountryFills(selectedCountry);
+}
+
+/**
+ * Setup country search functionality
+ */
+export function setupCountrySearch() {
+    const searchInput = d3.select('#country-search-input');
+    const clearBtn = d3.select('#clear-search');
+    const resultsContainer = d3.select('#search-results');
+
+    if (searchInput.empty()) {
+        return;
+    }
+
+    // Use only countries that are actually loaded in the map
+    function getAvailableCountries() {
+        return loadedCountries.length > 0 ? loadedCountries : Object.keys(countryNameMap).sort();
+    }
+
+    let selectedIndex = -1;
+
+    // Search function
+    function performSearch(query) {
+        if (!query || query.trim() === '') {
+            resultsContainer.style('display', 'none');
+            clearBtn.style('display', 'none');
+            selectedIndex = -1;
+            return;
+        }
+
+        clearBtn.style('display', 'block');
+
+        const normalizedQuery = query.toLowerCase().trim()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Remove acentos
+
+        const availableCountries = getAvailableCountries();
+        const matches = availableCountries.filter(country => {
+            const normalizedCountry = country.toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+            // Verifica se contém a query completa
+            if (normalizedCountry.includes(normalizedQuery)) {
+                return true;
+            }
+
+            // Verifica se alguma palavra do país começa com a query
+            const words = normalizedCountry.split(/\s+/);
+            return words.some(word => word.startsWith(normalizedQuery));
+        });
+
+        if (matches.length === 0) {
+            resultsContainer
+                .style('display', 'block')
+                .html('<div class="search-no-results">Nenhum país encontrado</div>');
+            selectedIndex = -1;
+            return;
+        }
+
+        resultsContainer
+            .style('display', 'block')
+            .html('');
+
+        matches.forEach((country, index) => {
+            resultsContainer.append('div')
+                .attr('class', 'search-result-item')
+                .attr('data-index', index)
+                .attr('data-country', country)
+                .text(country)
+                .on('click', () => selectCountry(country))
+                .on('mouseenter', function() {
+                    resultsContainer.selectAll('.search-result-item')
+                        .classed('highlighted', false);
+                    d3.select(this).classed('highlighted', true);
+                    selectedIndex = index;
+                });
+        });
+
+        selectedIndex = -1;
+    }
+
+    // Select country function
+    function selectCountry(country) {
+        if (typeof window !== 'undefined' && typeof window.changeCountry === 'function') {
+            window.changeCountry(country, { source: 'search', force: true });
+        }
+        searchInput.node().value = '';
+        resultsContainer.style('display', 'none');
+        clearBtn.style('display', 'none');
+        selectedIndex = -1;
+        searchInput.node().blur();
+    }
+
+    // Clear search
+    function clearSearch() {
+        searchInput.node().value = '';
+        resultsContainer.style('display', 'none');
+        clearBtn.style('display', 'none');
+        selectedIndex = -1;
+        searchInput.node().focus();
+    }
+
+    // Event listeners
+    searchInput.on('input', function() {
+        performSearch(this.value);
+    });
+
+    searchInput.on('keydown', function(event) {
+        const items = resultsContainer.selectAll('.search-result-item').nodes();
+
+        if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            if (items.length > 0) {
+                selectedIndex = (selectedIndex + 1) % items.length;
+                updateHighlight();
+            }
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            if (items.length > 0) {
+                selectedIndex = selectedIndex <= 0 ? items.length - 1 : selectedIndex - 1;
+                updateHighlight();
+            }
+        } else if (event.key === 'Enter') {
+            event.preventDefault();
+            if (selectedIndex >= 0 && items[selectedIndex]) {
+                const country = d3.select(items[selectedIndex]).attr('data-country');
+                selectCountry(country);
+            }
+        } else if (event.key === 'Escape') {
+            clearSearch();
+        }
+    });
+
+    function updateHighlight() {
+        const items = resultsContainer.selectAll('.search-result-item');
+        items.classed('highlighted', false);
+
+        if (selectedIndex >= 0) {
+            const selectedItem = items.filter((_, i) => i === selectedIndex);
+            selectedItem.classed('highlighted', true);
+
+            // Scroll into view if needed
+            const node = selectedItem.node();
+            if (node) {
+                node.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+        }
+    }
+
+    clearBtn.on('click', clearSearch);
+
+    // Close results when clicking outside
+    d3.select('body').on('click', function(event) {
+        const target = event.target;
+        const searchContainer = document.querySelector('.country-search-container');
+
+        if (searchContainer && !searchContainer.contains(target)) {
+            resultsContainer.style('display', 'none');
+            selectedIndex = -1;
+        }
+    });
 }
