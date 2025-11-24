@@ -48,8 +48,11 @@ async function initializeApp() {
 
     // Setup navigation and controls
     utils.initSmoothScroll();
+    console.log('Initializing back-to-top button...');
     if (typeof utils.initBackToTop === 'function') {
         utils.initBackToTop();
+    } else {
+        console.error('initBackToTop function not found in utils module');
     }
     setupVisualizationControls();
     setupCountrySelector();
