@@ -191,6 +191,14 @@ function createCategoryFilters(data) {
         .text("Dica: clique numa linha do gráfico para isolá-la e leia o rótulo no final da série para comparar valores.");
 }
 
+/**
+ * Draws the complete line chart visualization for inflation categories
+ * This is the main rendering function that creates a multi-series line chart with interactive features.
+ * It handles data validation, creates SVG elements, draws axes and grid, renders multiple category lines,
+ * adds interactive tooltips, and places intelligent endpoint labels to avoid overlaps.
+ * The chart supports focus mode (clicking a line isolates it) and hover interactions.
+ * Total complexity: 267 lines handling scales, axes, series drawing, label placement, and event handlers.
+ */
 function drawChart() {
     const container = d3.select("#viz-inflation-categories");
     container.selectAll("*").remove();
@@ -460,7 +468,23 @@ function drawChart() {
         .text("Passe o rato sobre as linhas para ler os valores anuais. Clique para isolar uma categoria e clique novamente para voltar ao overview.");
 }
 
-// Label placement routine: offset endpoints vertically, avoid collisions, and draw leader lines when needed
+/**
+ * Intelligent label placement routine for line chart endpoints
+ * This function places labels at the end of each series line, avoiding overlaps through collision detection.
+ * It calculates optimal vertical positions, shifts labels when they collide (respecting minimum gap),
+ * and draws leader lines connecting labels to their data points when necessary.
+ *
+ * @param {Array} targets - Array of label targets with {category, value, year, color, baseX, baseY}
+ * @param {d3.Selection} labelGroup - D3 selection for the label text elements
+ * @param {d3.Selection} leaderGroup - D3 selection for the leader line paths
+ * @param {number} chartWidth - Width of the chart area in pixels
+ * @param {number} chartHeight - Height of the chart area in pixels
+ * @param {string|null} focusedCategory - Currently focused category name (or null)
+ * @param {Function} toggleFocus - Callback function to toggle focus on a category
+ *
+ * Algorithm: sorts labels by Y position, applies collision avoidance in two passes (forward and backward),
+ * then renders labels with appropriate anchor points and optional leader lines for clarity.
+ */
 function placeEndpointLabels({ targets, labelGroup, leaderGroup, chartWidth, chartHeight, focusedCategory, toggleFocus }) {
     if (!targets.length) {
         return;

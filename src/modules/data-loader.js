@@ -575,6 +575,13 @@ export async function loadHICPData(country = "Portugal") {
 /**
  * Load and process income share data for the poorest 40%
  * Combines with inflation data for scatter plot analysis
+ * This function loads two datasets in parallel: income share CSV and total inflation data.
+ * It filters by country, calculates year-over-year variations for both metrics,
+ * and returns a combined dataset suitable for purchasing power analysis.
+ * Total: 98 lines handling async loading, filtering, variation calculation, and data merging.
+ *
+ * @param {string} country - Country name to filter data (default: "Portugal")
+ * @returns {Promise<Object|null>} Combined dataset with {data, years, country} or null on error
  */
 export async function loadIncomeAndInflationData(country = "Portugal") {
     try {

@@ -99,6 +99,17 @@ export function createScatterPlot(data, view = "variation", country = "Portugal"
 
 /**
  * View 1: Income variation vs inflation variation (Purchasing Power Analysis)
+ * Creates a scatter plot showing the relationship between year-over-year changes in inflation
+ * and income share for the poorest 40% of the population. Points are color-coded by quadrant
+ * to indicate purchasing power scenarios (best: income↑ inflation↓, worst: income↓ inflation↑).
+ * Includes interactive tooltips, grid lines, zero-axis crosshairs, and quadrant labels.
+ * Total: 205 lines covering data filtering, scale creation, axis rendering, and interactive elements.
+ *
+ * @param {d3.Selection} container - D3 selection of the container element
+ * @param {d3.Selection} svg - D3 selection of the SVG group element
+ * @param {number} width - Width of the chart area in pixels
+ * @param {number} height - Height of the chart area in pixels
+ * @param {Object} margin - Margin object with top, right, bottom, left properties
  */
 function drawVariationView(container, svg, width, height, margin) {
     // Filter out data points without both variations
@@ -308,6 +319,18 @@ function drawVariationView(container, svg, width, height, margin) {
 
 /**
  * View 2: Purchasing Power Index over time
+ * Creates a timeline visualization showing how purchasing power evolved year by year.
+ * The purchasing power index is calculated as (income variation - inflation variation),
+ * where positive values indicate gains and negative values indicate losses.
+ * The chart includes an area gradient, a connecting line, interactive circles with tooltips,
+ * and a zero reference line to distinguish gains from losses clearly.
+ * Total: 224 lines handling index calculation, scales, area/line rendering, and interactivity.
+ *
+ * @param {d3.Selection} container - D3 selection of the container element
+ * @param {d3.Selection} svg - D3 selection of the SVG group element
+ * @param {number} width - Width of the chart area in pixels
+ * @param {number} height - Height of the chart area in pixels
+ * @param {Object} margin - Margin object with top, right, bottom, left properties
  */
 function drawTimelineView(container, svg, width, height, margin) {
     const plotData = scatterData.data;

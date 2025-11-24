@@ -83,6 +83,16 @@ export async function syncComparisonCountry(country) {
     await applyComparisonSelection(pendingComparisonSelection);
 }
 
+/**
+ * Renders the complete HTML layout for the country comparison module
+ * Creates a comprehensive comparison interface with control panels, metric cards, text summaries,
+ * and placeholder containers for charts. The layout includes sections for country selection,
+ * side-by-side comparison cards showing inflation and wage metrics, differential analysis text,
+ * a quadrant scatter plot, and a dumbbell chart for real wage comparison.
+ * Total: 68 lines of template HTML covering controls, cards, summaries, and chart containers.
+ *
+ * @param {d3.Selection} container - D3 selection of the container element to render into
+ */
 function renderLayout(container) {
     container.html(`
         <div class="comparison-controls">
@@ -512,6 +522,15 @@ function buildComparisonConclusion(snapshotA, snapshotB, absoluteLeader, trendLe
     return sentences.join(' ');
 }
 
+/**
+ * Renders a quadrant-based scatter plot comparing two countries on inflation vs wage index
+ * Creates a 2D visualization with inflation on X-axis and real wage index on Y-axis.
+ * The chart is divided into four quadrants using threshold lines (5% inflation, 100 index),
+ * each quadrant colored and labeled to indicate different economic scenarios (best/worst).
+ * Includes automatic label positioning to avoid overlaps, axis rendering, grid lines, and legends.
+ * Total: 227 lines handling data validation, scale calculation, quadrant rendering, point plotting,
+ * and dynamic annotation based on normalized or original wage indices.
+ */
 function renderComparisonChart() {
     const chartContainer = d3.select('#comparison-chart');
     if (chartContainer.empty()) {
@@ -740,6 +759,14 @@ function renderComparisonChart() {
         .attr('class', 'comparison-legend-label');
 }
 
+/**
+ * Renders a dumbbell chart comparing real wages (adjusted for inflation) between two countries
+ * Creates a horizontal visualization with a connecting line between two circular nodes representing
+ * each country's real wage value. The chart includes axis labels, value annotations above nodes,
+ * a difference label at the center, and a base year note explaining the normalization approach.
+ * Automatically scales based on data range and applies padding for readability.
+ * Total: 121 lines handling data validation, scale setup, dumbbell rendering, labels, and notes.
+ */
 function renderRealWageDumbbell() {
     const container = d3.select('#real-wage-dumbbell');
     if (container.empty()) {

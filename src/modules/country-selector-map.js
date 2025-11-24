@@ -283,7 +283,14 @@ export function setupCountrySearch() {
 
     let selectedIndex = -1;
 
-    // Search function
+    /**
+     * Internal search function with fuzzy matching and accent-insensitive comparison
+     * Filters available countries based on user query, supporting partial matches and word-start matching.
+     * Displays matching results in a dropdown, handles empty states, and manages keyboard navigation state.
+     * Total: 58 lines including normalization, filtering logic, DOM rendering, and event binding.
+     *
+     * @param {string} query - The search query string entered by the user
+     */
     function performSearch(query) {
         if (!query || query.trim() === '') {
             resultsContainer.style('display', 'none');
