@@ -1378,6 +1378,14 @@ body {
     color: white;
 }
 
+.category-filter-hint {
+    flex-basis: 100%;
+    text-align: right;
+    font-size: 0.82rem;
+    color: #64748b;
+    margin-top: 0.5rem;
+}
+
 /* Year Selection Controls */
 .year-selection {
     background-color: #f8f9fa;
@@ -2024,4 +2032,84 @@ body {
     font-size: 12px;
     opacity: 0;
     transition: opacity 0.3s;
+}
+
+.line-chart-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.line-chart-wrapper svg {
+    width: 100%;
+}
+
+.line-chart-tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: rgba(15, 23, 42, 0.92);
+    color: #fff;
+    padding: 0.4rem 0.65rem;
+    border-radius: 0.5rem;
+    font-size: 0.78rem;
+    box-shadow: 0 12px 25px rgba(15, 23, 42, 0.25);
+    transform: translate(-50%, -120%);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 5;
+}
+
+.line-end-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    fill: #0f172a;
+    stroke: #fff;
+    stroke-width: 3px;
+    stroke-linejoin: round;
+    paint-order: stroke;
+    cursor: pointer;
+}
+
+.label-leader-line {
+    stroke-dasharray: 3 2;
+    opacity: 0.65;
+}
+
+.line-end-label.total {
+    fill: #b91c1c;
+}
+
+.line-end-label.dimmed {
+    opacity: 0.25;
+}
+
+.chart-hint {
+    margin: 0.75rem auto 0;
+    font-size: 0.85rem;
+    color: #475569;
+    font-style: italic;
+    text-align: center;
+}
+
+.bar-chart-tooltip {
+    position: absolute;
+    pointer-events: none;
+    background: rgba(15, 23, 42, 0.92);
+    color: #fff;
+    padding: 0.45rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.78rem;
+    box-shadow: 0 12px 25px rgba(15, 23, 42, 0.25);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 10;
+}
+
+.inflation-bar {
+    transition: stroke-width 0.2s ease, opacity 0.2s ease;
+}
+
+.bar-chart-legend text {
+    fill: #1f2937;
 }
