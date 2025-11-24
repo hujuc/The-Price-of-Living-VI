@@ -196,6 +196,10 @@ async function changeCountry(selectedCountry, options = {}) {
         await loadAndDisplayBulletGraph(targetCountry);
         await loadAndDisplayChoroplethMap(targetCountry);
         await loadAndDisplayScatterPlot(targetCountry);
+
+        // Reset visualization toggle buttons to timeline view (default)
+        d3.select("#btn-timeline-view").classed("active", true);
+        d3.select("#btn-radar-view").classed("active", false);
     } finally {
         console.debug("[changeCountry] completed", {
             targetCountry,
