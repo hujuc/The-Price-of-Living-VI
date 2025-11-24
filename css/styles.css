@@ -1196,6 +1196,10 @@ body {
     justify-content: center;
 }
 
+#viz-inflation-categories.viz-canvas {
+    min-height: 600px;
+}
+
 #viz-bullet-graph.viz-canvas {
     flex-direction: column;
     align-items: stretch;
@@ -1809,7 +1813,7 @@ body {
     width: 16px;
     height: 16px;
     border: 2px solid rgba(30, 64, 175, 0.5);
-    border-radius: 50%;
+    border-radius: 4px;
     position: relative;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -2104,11 +2108,14 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 0.75rem;
+    height: 700px;
+    padding-top: 60px;
 }
 
 .radar-chart-wrapper svg {
     width: 100%;
     max-width: 560px;
+    overflow: visible;
 }
 
 .radar-year-pill {
@@ -2213,8 +2220,8 @@ body {
 
 .radar-axis-label-text {
     fill: #0f172a;
-    font-size: 0.78rem;
-    font-weight: 650;
+    font-size: 0.68rem;
+    font-weight: 600;
     letter-spacing: 0.01em;
     text-transform: none;
     text-anchor: middle;

@@ -112,7 +112,7 @@ export function createBulletGraph(yearData, baseNominal, country = "Portugal", b
     svg.append("line")
         .attr("x1", xScale(referenceNominal))
         .attr("x2", xScale(referenceNominal))
-        .attr("y1", yCenter - barHeight / 2 - 5)
+        .attr("y1", yCenter - barHeight / 2 - 35)
         .attr("y2", yCenter + barHeight / 2 + 5)
         .attr("stroke", "#3498db")
         .attr("stroke-width", 2)
@@ -159,7 +159,7 @@ export function createBulletGraph(yearData, baseNominal, country = "Portugal", b
 
     svg.append("text")
         .attr("x", xScale(referenceNominal))
-        .attr("y", yCenter - barHeight / 2 - 30)
+        .attr("y", yCenter - barHeight / 2 - 45)
         .attr("text-anchor", "middle")
         .attr("font-size", "11px")
         .attr("fill", "#3498db")
@@ -254,7 +254,7 @@ export function createBulletGraph(yearData, baseNominal, country = "Portugal", b
 
     // Add legend below difference text
     const legend = svg.append("g")
-        .attr("transform", `translate(${width / 2 - 180}, ${yCenter + barHeight / 2 + 80})`);
+        .attr("transform", `translate(${width / 2 - 120}, ${yCenter + barHeight / 2 + 80})`);
 
     const legendItems = [
         { label: "Salário Nominal", color: "#2c3e50", type: "rect" },
@@ -263,12 +263,13 @@ export function createBulletGraph(yearData, baseNominal, country = "Portugal", b
     ];
 
     legendItems.forEach((item, i) => {
-        const xPos = i * 130;
+        const xPos = i * 140;
+        const yPos = 0;
 
         if (item.type === "rect") {
             legend.append("rect")
                 .attr("x", xPos)
-                .attr("y", -8)
+                .attr("y", yPos - 8)
                 .attr("width", 20)
                 .attr("height", 12)
                 .attr("fill", item.color)
@@ -277,16 +278,16 @@ export function createBulletGraph(yearData, baseNominal, country = "Portugal", b
             legend.append("line")
                 .attr("x1", xPos)
                 .attr("x2", xPos + 20)
-                .attr("y1", 0)
-                .attr("y2", 0)
+                .attr("y1", yPos)
+                .attr("y2", yPos)
                 .attr("stroke", item.color)
                 .attr("stroke-width", 4);
         } else if (item.type === "dash") {
             legend.append("line")
                 .attr("x1", xPos)
                 .attr("x2", xPos + 20)
-                .attr("y1", 0)
-                .attr("y2", 0)
+                .attr("y1", yPos)
+                .attr("y2", yPos)
                 .attr("stroke", item.color)
                 .attr("stroke-width", 2)
                 .attr("stroke-dasharray", "5,5");
@@ -294,7 +295,7 @@ export function createBulletGraph(yearData, baseNominal, country = "Portugal", b
 
         legend.append("text")
             .attr("x", xPos + 25)
-            .attr("y", 4)
+            .attr("y", yPos + 4)
             .attr("font-size", "11px")
             .text(item.label);
     });

@@ -77,32 +77,13 @@ export function createRadarChart(data, selectedYears, country = 'Portugal') {
 
     const wrapper = container.append('div').attr('class', 'radar-chart-wrapper');
 
-    const pill = wrapper.append('div').attr('class', 'radar-year-pill');
-    pill
-        .append('span')
-        .attr('class', 'radar-year-pill-label')
-        .text(
-            selectedYears.length === 1
-                ? `A mostrar ${selectedYears[0]}`
-                : `A mostrar ${selectedYears.length} anos`,
-        );
-
-    const tagList = pill.append('div').attr('class', 'radar-year-tags');
-    series.forEach((serie) => {
-        tagList
-            .append('span')
-            .attr('class', 'radar-year-tag')
-            .style('--year-color', serie.color)
-            .text(serie.year);
-    });
-
     const wrapperBounds = wrapper.node().getBoundingClientRect();
     const squareSize = clamp(
         wrapperBounds.width ? wrapperBounds.width : MIN_CHART_SIZE,
         MIN_CHART_SIZE,
         MAX_CHART_SIZE,
     );
-    const margin = 36;
+    const margin = 80;
     const radius = squareSize / 2 - margin;
 
     const svg = wrapper
@@ -393,9 +374,10 @@ function drawAxes(root, categories, angleSlice, radius) {
             .attr('x2', lineCoord.x)
             .attr('y2', lineCoord.y);
 
+        const labelDistance = category.name.length > 60 ? radius + 100 : radius + 40;
         const labelCoord = {
-            x: (radius + 20) * Math.cos(angle),
-            y: (radius + 20) * Math.sin(angle),
+            x: labelDistance * Math.cos(angle),
+            y: labelDistance * Math.sin(angle),
         };
 
         const labelGroup = axisGroup
@@ -439,4 +421,8 @@ function determineDefaultYears(years) {
 function getColorForYear(year) {
     const paletteIdx = Math.abs(year) % DEFAULT_COLORS.length;
     return DEFAULT_COLORS[paletteIdx];
+}
+
+function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
 }
