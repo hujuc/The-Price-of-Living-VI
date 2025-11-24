@@ -201,12 +201,22 @@ function drawVariationView(container, svg, width, height, margin) {
 
     // Determine color based on quadrant (purchasing power analysis)
     const getColor = (d) => {
-        // Positive income variation AND negative/low inflation variation = good (green)
-        // Negative income variation AND positive/high inflation variation = bad (red)
-        if (d.incomeVariation > 0 && d.inflationVariation < 0) return "#27ae60"; // Best case
-        if (d.incomeVariation < 0 && d.inflationVariation > 0) return "#e74c3c"; // Worst case
-        if (d.incomeVariation > 0 && d.inflationVariation > 0) return "#f39c12"; // Mixed (income up, inflation up)
-        return "#3498db"; // Mixed (income down, inflation down)
+        const incomeUp = d.incomeVariation > 0;
+        const inflationUp = d.inflationVariation > 0;
+
+        // Quadrant I (top-right): income↑ inflation↑ = Mixed orange (income growing but so is inflation)
+        if (incomeUp && inflationUp) return "#f39c12";
+
+        // Quadrant II (top-left): income↑ inflation↓ = Best green (income up, inflation down)
+        if (incomeUp && !inflationUp) return "#27ae60";
+
+        // Quadrant III (bottom-left): income↓ inflation↓ = Mixed blue (both decreasing)
+        if (!incomeUp && !inflationUp) return "#3498db";
+
+        // Quadrant IV (bottom-right): income↓ inflation↑ = Worst red (income down, inflation up)
+        if (!incomeUp && inflationUp) return "#e74c3c";
+
+        return "#95a5a6"; // Fallback gray
     };
 
     // Add circles
