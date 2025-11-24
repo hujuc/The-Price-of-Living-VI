@@ -2092,24 +2092,89 @@ body {
     text-align: center;
 }
 
-.bar-chart-tooltip {
+.radar-chart-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.radar-chart-wrapper svg {
+    width: 100%;
+}
+
+.radar-tooltip {
     position: absolute;
+    top: 0;
+    left: 0;
+    transform: translate(-50%, -100%);
     pointer-events: none;
     background: rgba(15, 23, 42, 0.92);
-    color: #fff;
-    padding: 0.45rem 0.75rem;
+    color: #f8fafc;
+    padding: 0.45rem 0.7rem;
     border-radius: 0.5rem;
     font-size: 0.78rem;
-    box-shadow: 0 12px 25px rgba(15, 23, 42, 0.25);
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.2);
     opacity: 0;
-    transition: opacity 0.15s ease;
+    transition: opacity 0.15s linear;
     z-index: 10;
 }
 
-.inflation-bar {
-    transition: stroke-width 0.2s ease, opacity 0.2s ease;
+.radar-grid circle {
+    fill: none;
 }
 
-.bar-chart-legend text {
-    fill: #1f2937;
+.radar-grid-label {
+    fill: #64748b;
+    font-size: 0.7rem;
+    pointer-events: none;
+}
+
+.radar-axis-label {
+    fill: #0f172a;
+    font-size: 0.78rem;
+    font-weight: 600;
+    pointer-events: none;
+}
+
+.radar-series .radar-line {
+    filter: drop-shadow(0 0 2px rgba(15, 23, 42, 0.08));
+}
+
+.radar-series .radar-marker {
+    transition: transform 0.15s ease;
+}
+
+.radar-series .radar-marker:hover {
+    transform: scale(1.2);
+}
+
+.radar-series.is-dimmed .radar-line,
+.radar-series.is-dimmed .radar-marker,
+.radar-series.is-dimmed .radar-fill {
+    opacity: 0.15;
+}
+
+.radar-inline-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    pointer-events: auto;
+    cursor: pointer;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.7);
+}
+
+.radar-inline-label.is-dimmed {
+    opacity: 0.25;
+}
+
+.radar-inline-label.hidden {
+    display: none;
+}
+
+.radar-legend .legend-item {
+    cursor: pointer;
+}
+
+.radar-legend .legend-item text {
+    pointer-events: none;
 }
