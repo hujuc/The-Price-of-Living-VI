@@ -60,10 +60,10 @@ export function createBulletGraph(yearData, baseNominal, country = "Portugal", b
 
     // Define ranges for bullet graph
     const ranges = [
-        { level: "poor", value: referenceNominal * 0.8, color: "#fee0d2" },
-        { level: "fair", value: referenceNominal * 0.9, color: "#fcbba1" },
-        { level: "good", value: referenceNominal, color: "#fc9272" },
-        { level: "excellent", value: maxValue, color: "#fb6a4a" }
+        { level: "critical", label: "Zona crítica", description: "Menos de 80% do ano base", value: referenceNominal * 0.8, color: "#fee0d2" },
+        { level: "alert", label: "Zona de alerta", description: "Entre 80% e 90%", value: referenceNominal * 0.9, color: "#fcbba1" },
+        { level: "near", label: "Quase na referência", description: "Entre 90% e 100%", value: referenceNominal, color: "#fc9272" },
+        { level: "above", label: "Acima do ano base", description: "> 100% do salário de referência", value: maxValue, color: "#fb6a4a" }
     ];
 
     // Bar height
@@ -298,6 +298,30 @@ export function createBulletGraph(yearData, baseNominal, country = "Portugal", b
         diffText.attr("fill", "#7f8c8d")
             .text(`Mesmo poder de compra que ${referenceYear}`);
     }
+
+    const subtitlesContainer = container.append("div")
+        .attr("class", "range-subtitles")
+        .attr("role", "list");
+
+    const subtitleItems = subtitlesContainer.selectAll(".range-subtitle")
+        .data(ranges)
+        .enter()
+        .append("div")
+        .attr("class", "range-subtitle")
+        .attr("role", "listitem");
+
+    subtitleItems.append("span")
+        .attr("class", "range-dot")
+        .style("background-color", d => d.color);
+
+    const subtitleText = subtitleItems.append("div")
+        .attr("class", "range-copy");
+
+    subtitleText.append("strong")
+        .text(d => d.label);
+
+    subtitleText.append("span")
+        .text(d => d.description);
 
     console.log("Bullet graph created successfully for year", yearData.year);
 }

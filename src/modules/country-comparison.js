@@ -464,25 +464,33 @@ function buildComparisonConclusion(snapshotA, snapshotB, absoluteLeader, trendLe
     const nameA = getCountryLabel('a');
     const nameB = getCountryLabel('b');
 
+    const sentences = [];
+
     if (!snapshotA || !snapshotB) {
-        return 'Selecione dois países para obter uma leitura completa.';
+        sentences.push('Selecione dois países para obter uma leitura completa.');
+    } else {
+        if (absoluteLeader === 'a') {
+            sentences.push(`${nameA} entrega hoje mais euros reais por mês.`);
+        } else if (absoluteLeader === 'b') {
+            sentences.push(`${nameB} oferece atualmente o valor real mais elevado.`);
+        } else if (absoluteLeader === 'tie') {
+            sentences.push('O poder de compra real atual é praticamente idêntico nos dois países.');
+        } else {
+            sentences.push('Ainda não há dados suficientes para comparar o poder de compra atual.');
+        }
+
+        if (trendLeader === 'a') {
+            sentences.push(`${nameA} foi quem mais recuperou desde 2020.`);
+        } else if (trendLeader === 'b') {
+            sentences.push(`${nameB} mostra a evolução mais forte desde 2020.`);
+        } else if (trendLeader === 'tie') {
+            sentences.push('As trajetórias desde 2020 avançaram quase no mesmo ritmo.');
+        } else {
+            sentences.push('Ainda não conseguimos avaliar a evolução relativa desde 2020 para ambos os países.');
+        }
     }
 
-    const levelText = (() => {
-        if (absoluteLeader === 'a') return `${nameA} garante hoje o maior poder de compra real em euros.`;
-        if (absoluteLeader === 'b') return `${nameB} é o país com mais euros reais disponíveis neste momento.`;
-        if (absoluteLeader === 'tie') return 'O nível atual de poder de compra real é praticamente o mesmo nas duas economias.';
-        return 'Ainda não há dados suficientes para comparar o poder de compra atual.';
-    })();
-
-    const trendText = (() => {
-        if (trendLeader === 'a') return `${nameA} foi quem mais ganhou terreno desde 2020.`;
-        if (trendLeader === 'b') return `${nameB} mostra a trajetória mais forte desde 2020.`;
-        if (trendLeader === 'tie') return 'As duas trajetórias desde 2020 evoluíram quase no mesmo ritmo.';
-        return 'Ainda não conseguimos avaliar a evolução relativa desde 2020 para ambos os países.';
-    })();
-
-    return `${levelText} ${trendText} Use o valor atual para perceber quem compra mais hoje e o índice para entender quem evoluiu melhor.`;
+    return sentences.join(' ');
 }
 
 function renderComparisonChart() {
@@ -539,7 +547,7 @@ function renderComparisonChart() {
 
     const width = chartContainer.node().clientWidth || 640;
     const height = 360;
-    const margin = { top: 24, right: 20, bottom: 50, left: 70 };
+    const margin = { top: 24, right: 20, bottom: 50, left: 125 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -633,15 +641,21 @@ function renderComparisonChart() {
         .attr('text-anchor', 'middle')
         .text('Inflação total (%)');
 
-    const yAxisLabel = state.normalized?.baseYear
-        ? `Índice real do salário mínimo (base comum ${state.normalized.baseYear} = 100)`
-        : 'Índice real do salário mínimo (base própria = 100)';
+    const yAxisLabelLines = state.normalized?.baseYear
+        ? ['Índice real do salário mínimo', `(base comum ${state.normalized.baseYear} = 100)`]
+        : ['Índice real do salário mínimo', '(base própria = 100)'];
 
-    root.append('text')
-        .attr('class', 'axis-label')
-        .attr('transform', `translate(${-50}, ${innerHeight / 2}) rotate(-90)`)
-        .attr('text-anchor', 'middle')
-        .text(yAxisLabel);
+    const yAxisLabelGroup = root.append('text')
+        .attr('class', 'axis-label axis-label-y')
+        .attr('transform', `translate(${-55}, ${innerHeight / 2}) rotate(-90)`)
+        .attr('text-anchor', 'middle');
+
+    yAxisLabelLines.forEach((line, index) => {
+        yAxisLabelGroup.append('tspan')
+            .attr('x', 0)
+            .attr('dy', index === 0 ? 0 : '1.2em')
+            .text(line);
+    });
 
     root.append('g')
         .attr('class', 'quadrant-labels')

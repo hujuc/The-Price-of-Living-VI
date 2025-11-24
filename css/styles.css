@@ -1195,6 +1195,14 @@ body {
     justify-content: center;
 }
 
+#viz-bullet-graph.viz-canvas {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 1.75rem 2rem 2.25rem;
+    gap: 1.5rem;
+}
+
 /* Visualization Controls */
 .viz-controls {
     display: flex;
@@ -1406,6 +1414,57 @@ body {
     cursor: pointer;
     transition: all 0.3s ease;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.range-subtitles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px dashed rgba(148, 163, 184, 0.5);
+    width: 100%;
+    justify-content: space-between;
+}
+
+.range-subtitle {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.65rem 0.9rem;
+    border-radius: 999px;
+    background: rgba(255, 247, 247, 0.9);
+    border: 1px solid rgba(249, 115, 22, 0.18);
+    flex: 1 1 220px;
+    min-width: 200px;
+}
+
+.range-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    margin-top: 4px;
+    flex-shrink: 0;
+}
+
+.range-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+    font-size: 0.8rem;
+    color: #475467;
+}
+
+.range-copy strong {
+    font-size: 0.88rem;
+    color: #b91c1c;
+    letter-spacing: 0.01em;
+}
+
+.range-copy span {
+    font-size: 0.75rem;
+    color: #475467;
+    line-height: 1.4;
 }
 
 .map-country-summary {
