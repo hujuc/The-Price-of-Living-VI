@@ -241,6 +241,25 @@ function drawChart() {
         .domain(otherCategories.map(c => c.name))
         .range(d3.schemeTableau10);
 
+    // Dash patterns for accessibility (colorblind-friendly)
+    const dashPatterns = [
+        "0",           // Solid
+        "5,5",         // Dashed
+        "2,3",         // Dotted
+        "10,5",        // Long dash
+        "5,2,2,2",     // Dash-dot
+        "10,5,2,5",    // Long dash-dot
+        "2,2",         // Small dotted
+        "8,3,2,3",     // Dash-dot-dot
+        "15,5",        // Very long dash
+        "5,5,2,5"      // Dash-dash-dot
+    ];
+
+    // Create dash pattern scale
+    const dashScale = d3.scaleOrdinal()
+        .domain(otherCategories.map(c => c.name))
+        .range(dashPatterns);
+
     // Line generator
     const line = d3.line()
         .x(d => xScale(d.year))
@@ -276,8 +295,9 @@ function drawChart() {
             .attr("class", `line category-line category-${category.name.replace(/\s+/g, '-')}`)
             .attr("d", line)
             .attr("stroke", colorScale(category.name))
-            .attr("stroke-width", 1.5)
-            .attr("opacity", 0.6)
+            .attr("stroke-width", 2)
+            .attr("stroke-dasharray", dashScale(category.name))
+            .attr("opacity", 0.7)
             .attr("fill", "none")
             .style("transition", "opacity 0.3s, stroke-width 0.3s")
             .style("cursor", "pointer");
@@ -294,7 +314,7 @@ function drawChart() {
             .on("mouseover", function(event) {
                 // Highlight the line
                 categoryPath
-                    .attr("stroke-width", 3)
+                    .attr("stroke-width", 3.5)
                     .attr("opacity", 1);
 
                 // Show tooltip with category info
@@ -323,8 +343,8 @@ function drawChart() {
             .on("mouseout", function() {
                 // Reset line style
                 categoryPath
-                    .attr("stroke-width", 1.5)
-                    .attr("opacity", 0.6);
+                    .attr("stroke-width", 2)
+                    .attr("opacity", 0.7);
 
                 // Hide tooltip
                 tooltip.transition()
@@ -420,15 +440,16 @@ function drawChart() {
 
         legend.append("line")
             .attr("x1", 0)
-            .attr("x2", 20)
+            .attr("x2", 30)
             .attr("y1", yPos)
             .attr("y2", yPos)
             .attr("stroke", colorScale(category.name))
             .attr("stroke-width", 2)
+            .attr("stroke-dasharray", dashScale(category.name))
             .attr("opacity", 0.8);
 
         legend.append("text")
-            .attr("x", 25)
+            .attr("x", 35)
             .attr("y", yPos + 4)
             .text(category.name.length > 25 ? category.name.substring(0, 22) + "..." : category.name)
             .attr("font-size", "10px")
