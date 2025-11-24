@@ -152,6 +152,17 @@ export function createRadarChart(data, selectedYears, country = 'Portugal') {
                 }
                 return false;
             });
+
+        // Disable hitboxes for other years when hovering
+        seriesGroup
+            .selectAll('.radar-marker-hitbox')
+            .style('pointer-events', function () {
+                const year = +d3.select(this).attr('data-year');
+                if (hoveredYear && year !== hoveredYear) {
+                    return 'none';
+                }
+                return 'auto';
+            });
     };
 
     const toggleFocus = (year) => {
@@ -210,6 +221,7 @@ export function createRadarChart(data, selectedYears, country = 'Portugal') {
             .enter()
             .append('circle')
             .attr('class', 'radar-marker-hitbox')
+            .attr('data-year', yearData.year)
             .attr('r', MARKER_RADIUS * 3)
             .attr('cx', (d) => d.x)
             .attr('cy', (d) => d.y)
