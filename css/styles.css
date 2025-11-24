@@ -1784,45 +1784,50 @@ body {
 .year-checkboxes {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
+    gap: 0.5rem;
     max-height: 200px;
     overflow-y: auto;
 }
 
 .year-checkbox-item {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    background-color: white;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    gap: 0.4rem;
+    padding: 0.35rem 0.6rem;
+    background-color: #f8fafc;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 20px;
     cursor: pointer;
     transition: all 0.2s ease;
-    min-width: 80px;
-}
-
-.year-checkbox-item:hover {
-    background-color: #f0f7ff;
-    border-color: var(--secondary-color);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0f172a;
 }
 
 .year-checkbox-item input[type="checkbox"] {
-    cursor: pointer;
+    appearance: none;
     width: 16px;
     height: 16px;
-}
-
-.year-checkbox-item label {
+    border: 2px solid rgba(30, 64, 175, 0.5);
+    border-radius: 50%;
+    position: relative;
     cursor: pointer;
-    font-size: 0.9rem;
-    color: var(--text-color);
-    margin: 0;
+    transition: all 0.2s ease;
 }
 
-.year-checkbox-item input[type="checkbox"]:checked + label {
-    font-weight: 600;
-    color: var(--secondary-color);
+.year-checkbox-item input[type="checkbox"]:checked {
+    border-color: #2563eb;
+    background-color: #2563eb;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+}
+
+.year-checkbox-item span {
+    line-height: 1;
+}
+
+.year-checkbox-item:hover {
+    border-color: rgba(37, 99, 235, 0.6);
+    background-color: rgba(37, 99, 235, 0.08);
 }
 
 /* Key Findings */
@@ -2096,85 +2101,123 @@ body {
     position: relative;
     width: 100%;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .radar-chart-wrapper svg {
     width: 100%;
+    max-width: 560px;
+}
+
+.radar-year-pill {
+    padding: 0.35rem 0.9rem;
+    border-radius: 999px;
+    background: rgba(37, 99, 235, 0.1);
+    color: #1d4ed8;
+    font-size: 0.85rem;
+    font-weight: 600;
 }
 
 .radar-tooltip {
     position: absolute;
     top: 0;
     left: 0;
-    transform: translate(-50%, -100%);
     pointer-events: none;
-    background: rgba(15, 23, 42, 0.92);
+    transform: translate(-50%, -100%);
+    background: #0f172a;
     color: #f8fafc;
-    padding: 0.45rem 0.7rem;
-    border-radius: 0.5rem;
+    padding: 0.4rem 0.65rem;
+    border-radius: 0.45rem;
     font-size: 0.78rem;
-    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.2);
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.25);
     opacity: 0;
-    transition: opacity 0.15s linear;
+    transition: opacity 0.12s ease;
     z-index: 10;
+    min-width: 140px;
 }
 
-.radar-grid circle {
+.radar-tooltip strong {
+    display: block;
+    margin-bottom: 0.1rem;
+    font-size: 0.8rem;
+}
+
+.radar-tooltip span {
+    font-size: 0.72rem;
+    color: #cbd5f5;
+}
+
+.radar-grid-ring {
     fill: none;
+    stroke: rgba(148, 163, 184, 0.45);
+    stroke-dasharray: 2 6;
 }
 
 .radar-grid-label {
-    fill: #64748b;
-    font-size: 0.7rem;
+    fill: #94a3b8;
+    font-size: 0.68rem;
     pointer-events: none;
+}
+
+.radar-axis-line {
+    stroke: rgba(148, 163, 184, 0.55);
+    stroke-width: 1;
 }
 
 .radar-axis-label {
+    pointer-events: none;
+    filter: drop-shadow(0 6px 14px rgba(15, 23, 42, 0.15));
+    transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.radar-axis-label-bg {
+    fill: rgba(255, 255, 255, 0.95);
+    stroke: rgba(148, 163, 184, 0.6);
+    stroke-width: 1px;
+}
+
+.radar-axis-label-text {
     fill: #0f172a;
     font-size: 0.78rem;
-    font-weight: 600;
-    pointer-events: none;
+    font-weight: 650;
+    letter-spacing: 0.01em;
+    text-transform: none;
+    text-anchor: middle;
 }
 
-.radar-series .radar-line {
-    filter: drop-shadow(0 0 2px rgba(15, 23, 42, 0.08));
+.radar-axis-label-text tspan {
+    text-anchor: middle;
 }
 
-.radar-series .radar-marker {
+.radar-line {
+    filter: drop-shadow(0 4px 10px rgba(37, 99, 235, 0.12));
+}
+
+.radar-marker-hit {
+    cursor: pointer;
+}
+
+.radar-marker {
     transition: transform 0.15s ease;
 }
 
-.radar-series .radar-marker:hover {
-    transform: scale(1.2);
+.radar-marker.is-active {
+    transform: scale(1.4);
 }
 
-.radar-series.is-dimmed .radar-line,
-.radar-series.is-dimmed .radar-marker,
-.radar-series.is-dimmed .radar-fill {
-    opacity: 0.15;
+.radar-series.is-hovered .radar-line {
+    stroke-width: 2.8;
 }
 
-.radar-inline-label {
-    font-size: 0.78rem;
-    font-weight: 600;
-    pointer-events: auto;
-    cursor: pointer;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.7);
+.radar-series.is-hovered .radar-fill {
+    fill-opacity: 0.2;
 }
 
-.radar-inline-label.is-dimmed {
-    opacity: 0.25;
-}
-
-.radar-inline-label.hidden {
-    display: none;
-}
-
-.radar-legend .legend-item {
-    cursor: pointer;
-}
-
-.radar-legend .legend-item text {
-    pointer-events: none;
+.radar-hint {
+    font-size: 0.8rem;
+    color: #475569;
+    text-align: center;
+    margin: 0;
 }
