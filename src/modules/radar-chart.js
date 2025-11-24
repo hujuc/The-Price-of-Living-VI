@@ -79,7 +79,11 @@ export function createRadarChart(data, selectedYears, country = 'Portugal') {
         .append('g')
         .attr('transform', `translate(${margin.left + innerWidth / 2},${margin.top + innerHeight / 2})`);
 
-    const tooltip = wrapper.append('div').attr('class', 'radar-tooltip').style('opacity', 0);
+    const tooltip = wrapper
+        .append('div')
+        .attr('class', 'radar-tooltip')
+        .style('opacity', 0)
+        .style('pointer-events', 'none');
 
     const radarData = selectedYears.map((year) => {
         const values = categories.map((category) => {
@@ -165,7 +169,9 @@ export function createRadarChart(data, selectedYears, country = 'Portugal') {
             .html(`<strong>${payload.year}</strong> · ${payload.category}<br>${payload.value.toFixed(2)}%`);
     };
 
-    const hideTooltip = () => tooltip.transition().duration(150).style('opacity', 0);
+    const hideTooltip = () => {
+        tooltip.transition().duration(150).style('opacity', 0);
+    };
 
     radarData.forEach((yearData) => {
         const color = colorScale(yearData.year);
@@ -186,22 +192,31 @@ export function createRadarChart(data, selectedYears, country = 'Portugal') {
             .attr('d', radarLine)
             .attr('stroke', color)
             .attr('stroke-width', 2.5)
-            .attr('fill', 'none');
+            .attr('fill', 'none')
+            .style('pointer-events', 'none');
 
+        // Create marker data with pre-calculated positions
+        const markerData = yearData.values.map((point, i) => ({
+            ...point,
+            x: rScale(point.value) * Math.cos(angleSlice * i - Math.PI / 2),
+            y: rScale(point.value) * Math.sin(angleSlice * i - Math.PI / 2),
+            year: yearData.year,
+        }));
+
+        // Create invisible larger circles for easier hover detection
         series
-            .selectAll('.radar-marker')
-            .data(yearData.values)
+            .selectAll('.radar-marker-hitbox')
+            .data(markerData)
             .enter()
             .append('circle')
-            .attr('class', 'radar-marker')
-            .attr('r', MARKER_RADIUS)
-            .attr('stroke', '#fff')
-            .attr('stroke-width', 1.5)
-            .attr('fill', color)
-            .attr('cx', (_d, i) => rScale(yearData.values[i].value) * Math.cos(angleSlice * i - Math.PI / 2))
-            .attr('cy', (_d, i) => rScale(yearData.values[i].value) * Math.sin(angleSlice * i - Math.PI / 2))
-            .on('mousemove', (event, point) => {
-                showTooltip(event, { ...point, year: yearData.year });
+            .attr('class', 'radar-marker-hitbox')
+            .attr('r', MARKER_RADIUS * 3)
+            .attr('cx', (d) => d.x)
+            .attr('cy', (d) => d.y)
+            .attr('fill', 'transparent')
+            .attr('cursor', 'pointer')
+            .on('mouseenter', (event, d) => {
+                showTooltip(event, d);
                 hoveredYear = yearData.year;
                 updateSeriesFocus();
             })
@@ -210,6 +225,21 @@ export function createRadarChart(data, selectedYears, country = 'Portugal') {
                 hoveredYear = null;
                 updateSeriesFocus();
             });
+
+        // Create visible marker circles
+        series
+            .selectAll('.radar-marker')
+            .data(markerData)
+            .enter()
+            .append('circle')
+            .attr('class', 'radar-marker')
+            .attr('r', MARKER_RADIUS)
+            .attr('cx', (d) => d.x)
+            .attr('cy', (d) => d.y)
+            .attr('stroke', '#fff')
+            .attr('stroke-width', 1.5)
+            .attr('fill', color)
+            .style('pointer-events', 'none');
 
         series
             .on('mouseenter', () => {
