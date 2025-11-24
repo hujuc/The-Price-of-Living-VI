@@ -385,39 +385,25 @@ function buildSalaryLevelSummary(snapshotA, snapshotB) {
 
     const sentences = [];
 
-    if (nominalA != null || realA != null) {
-        if (nominalA != null && realA != null) {
-            sentences.push(`${nameA} paga ${formatCurrency(nominalA)} e, descontando a inflação, isso equivale a ${formatCurrency(realA)} de poder de compra real.`);
-        } else if (nominalA != null) {
-            sentences.push(`${nameA} paga ${formatCurrency(nominalA)} de salário mínimo nominal.`);
-        } else if (realA != null) {
-            sentences.push(`${nameA} regista ${formatCurrency(realA)} de salário real ajustado.`);
-        }
-    }
-
-    if (nominalB != null || realB != null) {
-        if (nominalB != null && realB != null) {
-            sentences.push(`${nameB} oferece ${formatCurrency(nominalB)} nominais e ${formatCurrency(realB)} após o ajuste da inflação.`);
-        } else if (nominalB != null) {
-            sentences.push(`${nameB} oferece ${formatCurrency(nominalB)} de salário mínimo nominal.`);
-        } else if (realB != null) {
-            sentences.push(`${nameB} apresenta ${formatCurrency(realB)} de salário real ajustado.`);
-        }
+    if (nominalA != null && nominalB != null) {
+        sentences.push(`Salário nominal: ${nameA} ${formatCurrency(nominalA)} vs ${nameB} ${formatCurrency(nominalB)}.`);
+    } else if (nominalA != null || nominalB != null) {
+        sentences.push(`${nameA} paga ${formatCurrency(nominalA)} nominal e ${nameB} paga ${formatCurrency(nominalB)}.`);
     }
 
     let leader = null;
     if (realA != null && realB != null) {
         const diff = realA - realB;
-        if (Math.abs(diff) < 25) {
-            sentences.push('Os dois países apresentam níveis de poder de compra real muito próximos no momento atual.');
-            leader = 'tie';
-        } else if (diff > 0) {
-            sentences.push(`${nameA} garante hoje o maior poder de compra real, com uma margem de ${formatCurrency(Math.abs(diff))} face a ${nameB}.`);
-            leader = 'a';
-        } else {
-            sentences.push(`${nameB} garante hoje o maior poder de compra real, com uma vantagem de ${formatCurrency(Math.abs(diff))} em relação a ${nameA}.`);
-            leader = 'b';
+        const leaderName = diff >= 0 ? nameA : nameB;
+        const leaderKey = diff >= 0 ? 'a' : 'b';
+        const formattedDiff = formatCurrency(Math.abs(diff));
+        sentences.push(`Salário real ajustado: ${nameA} ${formatCurrency(realA)} vs ${nameB} ${formatCurrency(realB)} (${leaderName} tem ${formattedDiff} a mais em euros reais).`);
+        leader = Math.abs(diff) < 25 ? 'tie' : leaderKey;
+        if (leader === 'tie') {
+            sentences[sentences.length - 1] = `Salário real ajustado: ${nameA} ${formatCurrency(realA)} vs ${nameB} ${formatCurrency(realB)} (diferença mínima).`;
         }
+    } else if (realA != null || realB != null) {
+        sentences.push(`${nameA} apresenta ${realA != null ? formatCurrency(realA) : '—'} de salário real e ${nameB} ${realB != null ? formatCurrency(realB) : '—'}.`);
     }
 
     if (!sentences.length) {
@@ -447,32 +433,29 @@ function buildIndexEvolutionSummary(snapshotA, snapshotB) {
         };
     }
 
-    const sentences = [];
     const basePhrase = baseYear ? ` (base ${baseYear} = 100)` : '';
-    if (indexA != null) {
-        sentences.push(`${nameA} está nos ${Math.round(indexA)} pontos do índice real${basePhrase}.`);
-    }
-    if (indexB != null) {
-        sentences.push(`${nameB} regista ${Math.round(indexB)} pontos${basePhrase}.`);
-    }
-
     let leader = null;
+    let summaryText = '';
+
     if (indexA != null && indexB != null) {
         const diff = indexA - indexB;
+        const diffAbs = Math.abs(Math.round(diff));
         if (Math.abs(diff) < 2) {
-            sentences.push('A evolução relativa desde o ano base é praticamente idêntica nos dois países.');
             leader = 'tie';
+            summaryText = `${nameA} e ${nameB} evoluíram quase ao mesmo ritmo desde o ano base${basePhrase}, com ${Math.round(indexA)} vs ${Math.round(indexB)} pontos.`;
         } else if (diff > 0) {
-            sentences.push(`${nameA} foi o país que mais progrediu desde o ano base, subindo ${Math.round(Math.abs(diff))} pontos acima de ${nameB}.`);
             leader = 'a';
+            summaryText = `${nameA} acumula ${Math.round(indexA)} pontos do índice real${basePhrase}, ${diffAbs} acima de ${nameB} (${Math.round(indexB)} pts).`;
         } else {
-            sentences.push(`${nameB} avançou mais em termos relativos, com ${Math.round(Math.abs(diff))} pontos adicionais face a ${nameA}.`);
             leader = 'b';
+            summaryText = `${nameB} alcança ${Math.round(indexB)} pontos${basePhrase}, superando ${nameA} em ${diffAbs} pontos (${Math.round(indexA)} pts).`;
         }
+    } else if (indexA != null || indexB != null) {
+        summaryText = `${nameA}: ${indexA != null ? Math.round(indexA) : '—'} pts${basePhrase}; ${nameB}: ${indexB != null ? Math.round(indexB) : '—'} pts.`;
     }
 
     return {
-        text: sentences.join(' '),
+        text: summaryText,
         leader
     };
 }
@@ -481,34 +464,25 @@ function buildComparisonConclusion(snapshotA, snapshotB, absoluteLeader, trendLe
     const nameA = getCountryLabel('a');
     const nameB = getCountryLabel('b');
 
-    const sentences = [];
-
     if (!snapshotA || !snapshotB) {
-        sentences.push('Selecione dois países para obter uma leitura completa.');
-    } else {
-        if (absoluteLeader === 'a') {
-            sentences.push(`${nameA} lidera no valor real recebido hoje, por isso quem vive em ${nameA} tem atualmente mais poder de compra em euros.`);
-        } else if (absoluteLeader === 'b') {
-            sentences.push(`${nameB} lidera no valor real recebido hoje, com mais euros disponíveis do que em ${nameA}.`);
-        } else if (absoluteLeader === 'tie') {
-            sentences.push('O nível atual de poder de compra real é praticamente o mesmo nos dois países.');
-        } else {
-            sentences.push('Ainda não há dados suficientes para comparar o poder de compra atual.');
-        }
-
-        if (trendLeader === 'a') {
-            sentences.push(`${nameA} também é quem mais recuperou desde 2020, mostrando a trajetória mais favorável.`);
-        } else if (trendLeader === 'b') {
-            sentences.push(`${nameB} apresenta a maior evolução desde 2020, mesmo que o valor atual possa ser diferente.`);
-        } else if (trendLeader === 'tie') {
-            sentences.push('A evolução relativa desde 2020 é praticamente idêntica nas duas economias.');
-        } else {
-            sentences.push('Ainda não conseguimos avaliar a evolução relativa desde 2020 para ambos os países.');
-        }
+        return 'Selecione dois países para obter uma leitura completa.';
     }
 
-    sentences.push('Compare sempre o nível atual em euros e a trajetória do índice como métricas complementares.');
-    return sentences.join(' ');
+    const levelText = (() => {
+        if (absoluteLeader === 'a') return `${nameA} garante hoje o maior poder de compra real em euros.`;
+        if (absoluteLeader === 'b') return `${nameB} é o país com mais euros reais disponíveis neste momento.`;
+        if (absoluteLeader === 'tie') return 'O nível atual de poder de compra real é praticamente o mesmo nas duas economias.';
+        return 'Ainda não há dados suficientes para comparar o poder de compra atual.';
+    })();
+
+    const trendText = (() => {
+        if (trendLeader === 'a') return `${nameA} foi quem mais ganhou terreno desde 2020.`;
+        if (trendLeader === 'b') return `${nameB} mostra a trajetória mais forte desde 2020.`;
+        if (trendLeader === 'tie') return 'As duas trajetórias desde 2020 evoluíram quase no mesmo ritmo.';
+        return 'Ainda não conseguimos avaliar a evolução relativa desde 2020 para ambos os países.';
+    })();
+
+    return `${levelText} ${trendText} Use o valor atual para perceber quem compra mais hoje e o índice para entender quem evoluiu melhor.`;
 }
 
 function renderComparisonChart() {
