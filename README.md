@@ -1,126 +1,121 @@
-# The Price of Living: A Visual Journey Through Inflation
+# The Price of Living
 
-**Department of Electronics, Telecommunications and Informatics (DETI)**
+An interactive data visualization application exploring inflation trends and their impact on living costs across European countries.
+
 **University of Aveiro**
-**Information Visualisation**
-**2025/2026 – 1st Semester**
-**Practical Assignment – Application for the Visual Exploration of a Data Set**
+**Department of Electronics, Telecommunications and Informatics (DETI)**
+**Information Visualisation - 2024/2025**
 
 ---
 
-## 1. Introduction
+## Overview
 
-**“The Price of Living: A Visual Journey Through Inflation”** is a data visualization project that explores the phenomenon of inflation in Portugal.
-The goal is to help users understand how inflation has evolved over time and how it affects the cost of living, wages, housing, and income inequality.
+The Price of Living is a web-based visualization tool that helps users understand how inflation affects cost of living, wages, and income distribution. Through interactive charts and comparative analysis, users can explore economic data from Portugal and other European countries.
 
-The application aims to communicate this information through **interactive and intuitive visualizations**, making complex economic data more accessible and engaging.
+## Features
 
----
+- **Inflation by Category**: Interactive time-series visualization showing inflation rates across different goods and services categories
+- **Radar Chart Analysis**: Multi-year comparison of inflation impact across product categories
+- **Purchasing Power Analysis**: Bullet graph comparing nominal vs. real minimum wage over time
+- **European Comparison**: Choropleth map displaying inflation rates (HICP) across European countries
+- **Income Distribution Impact**: Scatter plot analyzing the relationship between inflation and income share of the poorest 40%
+- **Country Comparison**: Side-by-side analysis with quadrant matrices and aligned real wage comparisons
 
-## 2. Objectives
+## Data Sources
 
-* Visually explore inflation trends in Portugal over recent years.
-* Compare price increases with wage evolution.
-* Understand how inflation affects income distribution and inequality.
-* Provide an interactive tool that enables users to **filter, explore, and interpret** the data through visual means.
+The application uses publicly available datasets from:
 
----
+- **PORDATA**: Portuguese inflation, wage, and income distribution data
+- **Eurostat**: Harmonised Index of Consumer Prices (HICP) and European wage data
 
-## 3. Data
+### Datasets
 
-The project uses publicly available datasets from **PORDATA** and **Eurostat**, including:
+- `inflacao-categorias-portugal.csv` - Inflation by category (Portugal)
+- `salario-minimo-nacional.csv` - National minimum wage data
+- `40-mais-pobres.csv` - Income share of poorest 40%
+- `HICP.csv` - Harmonised Index of Consumer Prices (EU countries)
+- `inflacao_portugal_europa.csv` - Comparative inflation data
+- `salario_minimo_europa.csv` - European minimum wage data
+- `europe-topology.json` - TopoJSON for map visualization
 
-* Consumer Price Index (CPI) by goods and services
-* Harmonised Index of Consumer Prices (HICP)
-* National minimum wage
-* Income share of the poorest 40%
-* Total and core inflation rates
+## Technology Stack
 
----
+- **D3.js v7** - Data visualization library
+- **HTML5/CSS3** - Structure and styling
+- **Vanilla JavaScript (ES6 modules)** - Application logic
+- **TopoJSON** - Efficient geographic data encoding
 
-## 4. Target Users and Context
+## Installation
 
-This application is designed for:
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd The-Price-of-Living-VI
+   ```
 
-* Students and educators seeking to explore and understand inflation data.
-* Policy analysts and decision-makers studying economic inequality.
-* The general public interested in the evolution of living costs in Portugal.
+2. Serve the application using a local web server:
+   ```bash
+   # Using Python 3
+   python -m http.server 8000
 
-The visualization is web-based, encouraging **exploration and interaction** through clear, accessible design.
+   # Using Node.js http-server
+   npx http-server
+   ```
 
----
+3. Open `http://localhost:8000` in a web browser
 
-## 5. Main Questions
+Note: Opening `index.html` directly in a browser may cause CORS issues due to ES6 module imports.
 
-The application helps users visually answer key questions such as:
+## Project Structure
 
-1. How much did inflation increase overall and by category?
-2. Did wages keep up with rising prices?
-3. How does Portugal compare with the European Union average?
-4. Did inflation worsen inequality or affect low-income groups the most?
+```
+The-Price-of-Living-VI/
+├── index.html              # Main application entry point
+├── css/
+│   └── styles.css          # Application styles
+├── src/
+│   ├── main.js            # Application initialization
+│   └── modules/
+│       ├── data-loader.js          # Data loading and processing
+│       ├── line-chart.js           # Inflation timeline visualization
+│       ├── radar-chart.js          # Category comparison radar
+│       ├── bullet-graph.js         # Wage purchasing power
+│       ├── choropleth-map.js       # European HICP map
+│       ├── scatter-plot.js         # Income vs inflation analysis
+│       ├── country-comparison.js   # Comparative analysis
+│       ├── country-selector-map.js # Interactive country selection
+│       ├── empty-state.js          # Empty state handling
+│       └── utils.js                # Utility functions
+└── data/
+    └── [CSV and JSON datasets]
+```
 
----
+## Usage
 
-## 6. Visualization Design
+1. **Country Selection**: Use the interactive map to select a country for analysis
+2. **Inflation by Category**: Toggle between timeline and radar views to explore inflation trends
+3. **Purchasing Power**: Select years from the dropdown to compare nominal vs. real wages
+4. **European Context**: Adjust the year slider on the choropleth map to see inflation across Europe
+5. **Income Analysis**: Switch between variation and timeline views to understand purchasing power changes
+6. **Country Comparison**: Automatically compares selected country with Portugal
 
-The visualizations are implemented using **D3.js**, following a **human-centred, iterative design process**.
+## Design Principles
 
-### Planned Views:
+- Human-centered iterative design process
+- Progressive disclosure of complexity
+- Interactive exploration over static presentation
+- Clear visual encoding of quantitative relationships
+- Accessibility through intuitive navigation and empty states
 
-1. **Overview of Inflation Over Time** – showing overall inflation and core inflation trends.
-2. **Price vs. Wage Comparison** – visualizing the gap between inflation and wage growth.
-3. **Income Distribution Impact** – highlighting how inflation affects income inequality and the poorest 40% of the population.
-4. **Comparação entre Países (Portugal vs. outro país)** – componente interativo com cartões, um gráfico de quadrantes (inflação vs. índice real) e um gráfico tipo dumbbell para comparar diretamente o salário real em euros, alinhando automaticamente ambos os países a um ano base comum.
+## Authors
 
-Each visualization supports **interactive exploration**, allowing users to filter categories, hover for details, and compare across time periods.
+- Angela Ribeiro - 109061 - angelammaribeiro@ua.pt
+- Hugo Castro - 113889 - hugocastro@ua.pt
 
----
+## Acknowledgements
 
-## 7. Design Process and Iterations
+Developed as part of the Information Visualisation course at the University of Aveiro under the supervision of Prof. Paulo Dias.
 
-### First Iteration:
+## License
 
-* **Data and user analysis**
-* **Main questions definition**
-* **Selection of visualization techniques** (line charts, bar charts, and scatter plots)
-* **Development of a low-fidelity prototype**
-* **Usability testing** with classmates
-
-### Second Iteration:
-
-* Integration of user feedback
-* Implementation of the prototype using **D3.js**
-* **Heuristic Evaluation** and **user testing** of the final prototype
-
----
-
-## 8. Tools and Libraries
-
-* **D3.js** – for interactive data visualization
-* **HTML / CSS / JavaScript** – for web interface development
-* **PorData & Eurostat APIs** – for data sourcing
-
-All non-original code or external libraries are clearly referenced in the code and documentation.
-
----
-
-## 9. Installation and Execution
-
-1. Clone or download the repository.
-2. Install dependencies (if any) via `npm install` or as indicated in the project folder.
-3. Open the main HTML file (`index.html`) in a web browser.
-4. The visualizations will be generated dynamically from the included dataset(s).
-
----
-
-## 10. Team
-
-- **Ângela Ribeiro** — 109061 — [angelammaribeiro@ua.pt](mailto:angelammaribeiro@ua.pt)
-- **Hugo Castro** — 113889 — [hugocastro@ua.pt](mailto:hugo.castro@ua.pt)
-
----
-
-## 11. Acknowledgements
-
-Developed as part of the **Information Visualisation** course at the **University of Aveiro**.
-We thank Prof. **Paulo Dias** for the guidance and feedback provided throughout the project.
+This project was developed for academic purposes at the University of Aveiro.
