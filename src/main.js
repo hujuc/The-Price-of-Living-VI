@@ -10,8 +10,9 @@ import { setupBulletYearSelector, resetBulletYearSelector } from './modules/bull
 import { createChoroplethMap, setupChoroplethControls } from './modules/choropleth-map.js';
 import { renderCountrySelectorMap, refreshCountrySelectorMap } from './modules/country-selector-map.js';
 import { createScatterPlot, setupScatterControls, resetScatterControls } from './modules/scatter-plot.js';
-import { initSmoothScroll } from './modules/utils.js';
+import * as utils from './modules/utils.js';
 import { renderEmptyState, startEmptyStateObserver } from './modules/empty-state.js';
+import { initCountryComparison } from './modules/country-comparison.js';
 
 /**
  * Initialize visualizations when DOM is loaded
@@ -46,12 +47,16 @@ async function initializeApp() {
     await loadAndDisplayScatterPlot();
 
     // Setup navigation and controls
-    initSmoothScroll();
+    utils.initSmoothScroll();
+    if (typeof utils.initBackToTop === 'function') {
+        utils.initBackToTop();
+    }
     setupVisualizationControls();
     setupCountrySelector();
     updateCountryCardState(window.currentCountry);
     await renderCountrySelectorMap();
     refreshCountrySelectorMap(window.currentCountry);
+    await initCountryComparison();
 }
 
 /**

@@ -9,6 +9,35 @@ let currentView = "variation"; // "variation" or "timeline"
 let scatterData = null;
 let currentCountry = "Portugal";
 
+const countryDisplayOverrides = {
+    "Spain": "Espanha",
+    "Espanha": "Espanha",
+    "France": "França",
+    "França": "França",
+    "Germany": "Alemanha",
+    "Alemanha": "Alemanha",
+    "Finland": "Finlândia",
+    "Finlândia": "Finlândia",
+    "Italy": "Itália",
+    "Itália": "Itália",
+    "Portugal": "Portugal"
+};
+
+function getDisplayCountryLabel(country) {
+    if (!country) {
+        return "Portugal";
+    }
+    return countryDisplayOverrides[country] || country;
+}
+
+function updateScatterNarrativeCountry(country) {
+    const label = document.getElementById("scatter-description-country");
+    if (!label) {
+        return;
+    }
+    label.textContent = getDisplayCountryLabel(country);
+}
+
 function hasValidScatterDataset(data) {
     return !!(data && Array.isArray(data.data) && data.data.length);
 }
@@ -245,14 +274,7 @@ function drawVariationView(container, svg, width, height, margin) {
         .attr("font-weight", "600")
         .text("↓ Rend. ↑ Infl.");
 
-    // Country name mapping for display
-    const countryNames = {
-        "Portugal": "Portugal",
-        "Espanha": "Espanha",
-        "France": "França",
-        "Alemanha": "Alemanha"
-    };
-    const displayCountry = countryNames[currentCountry] || currentCountry;
+    const displayCountry = getDisplayCountryLabel(currentCountry);
 
     // Add title
     svg.append("text")
@@ -279,6 +301,7 @@ function drawVariationView(container, svg, width, height, margin) {
  */
 function drawTimelineView(container, svg, width, height, margin) {
     const plotData = scatterData.data;
+    const displayCountry = getDisplayCountryLabel(currentCountry);
 
     // Calculate purchasing power index for each year
     // Positive values = better purchasing power (income up more than inflation, or income up and inflation down)
@@ -472,7 +495,7 @@ function drawTimelineView(container, svg, width, height, margin) {
         .attr("font-size", "16px")
         .attr("font-weight", "bold")
         .attr("fill", "#2c3e50")
-        .text("Evolução do Poder de Compra dos 40% Mais Pobres");
+        .text(`Evolução do Poder de Compra dos 40% Mais Pobres – ${displayCountry}`);
 
     // Add subtitle
     svg.append("text")
@@ -514,6 +537,7 @@ export function setupScatterControls(data, country = "Portugal") {
     if (!hasData) {
         scatterData = null;
         currentCountry = country;
+        updateScatterNarrativeCountry(currentCountry);
         btnVariation.classed("active", true);
         btnTimeline.classed("active", false);
         toggleDescriptions("variation");
@@ -522,6 +546,7 @@ export function setupScatterControls(data, country = "Portugal") {
 
     scatterData = data;
     currentCountry = country;
+    updateScatterNarrativeCountry(currentCountry);
 
     btnVariation.classed("active", true);
     btnTimeline.classed("active", false);
@@ -556,6 +581,7 @@ export function resetScatterControls() {
     const { btnVariation, btnTimeline } = updateScatterButtonsState(true);
     btnVariation.on("click", null).classed("active", true);
     btnTimeline.on("click", null).classed("active", false);
+    updateScatterNarrativeCountry("Portugal");
     toggleDescriptions("variation");
 }
 

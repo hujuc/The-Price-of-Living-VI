@@ -445,13 +445,16 @@ export async function loadCountryComparisonSnapshot(country = "Portugal") {
             country: targetCountry,
             displayName: getDisplayCountryName(targetCountry) || targetCountry,
             inflation: null,
-            wage: null
+            inflationSeries: null,
+            wage: null,
+            wageTimeline: null
         };
 
         if (inflationData?.categories?.length) {
             const totalCategory = inflationData.categories.find(c => c.name === "Total");
             if (totalCategory?.values?.length) {
                 const orderedValues = [...totalCategory.values].sort((a, b) => a.year - b.year);
+                snapshot.inflationSeries = orderedValues;
                 const latestEntry = orderedValues[orderedValues.length - 1];
                 if (latestEntry?.value != null) {
                     snapshot.inflation = {
@@ -469,6 +472,10 @@ export async function loadCountryComparisonSnapshot(country = "Portugal") {
                 .sort((a, b) => a - b);
 
             if (wageYears.length) {
+                const wageTimeline = wageYears.map(year => ({
+                    year,
+                    nominal: wageData[year]
+                }));
                 const latestYear = wageYears[wageYears.length - 1];
                 const nominalValue = wageData[latestYear];
                 const baseYear = wageYears.includes(2012) ? 2012 : wageYears[0];
@@ -488,6 +495,7 @@ export async function loadCountryComparisonSnapshot(country = "Portugal") {
                     baseNominal,
                     index: realIndex
                 };
+                snapshot.wageTimeline = wageTimeline;
             }
         }
 

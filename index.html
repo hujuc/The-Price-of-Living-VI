@@ -209,7 +209,8 @@
             <div class="visualization-container">
                 <h3>Inflação e Rendimento dos 40% Mais Pobres</h3>
                 <p class="viz-description">
-                    Análise da relação entre a inflação e a distribuição de rendimento em Portugal (2000-2024).
+                    Análise da relação entre a inflação e a distribuição de rendimento em
+                    <span id="scatter-description-country">Portugal</span> (2000-2024).
                 </p>
                 <p class="viz-source">
                     <strong>Fontes:</strong> <a href="https://www.pordata.pt/pt/estatisticas/pobreza/desigualdade-na-distribuicao-dos-rendimentos/rendimento-dos-40-mais-pobres-da" target="_blank" rel="noopener noreferrer">Pordata - Rendimento dos 40% Mais Pobres</a> | <a href="https://www.pordata.pt/pt/estatisticas/inflacao/taxa-de-inflacao/taxa-de-inflacao-por-bens-e-servicos-portugal" target="_blank" rel="noopener noreferrer">Taxa de Inflação</a>
@@ -249,6 +250,21 @@
 
                 <div id="viz-scatter-plot" class="viz-canvas"></div>
             </div>
+
+            <!-- Visualization 5: Country Comparison -->
+            <div class="visualization-container">
+                <h3>Comparação entre Países</h3>
+                <p class="viz-description">
+                    Compare Portugal com outro país europeu num gráfico de quadrantes: o eixo X mostra a inflação total (%) e o eixo Y o índice real do salário mínimo (base comum quando disponível), enquanto os cartões destacam o salário nominal e o salário real ajustado em euros para cada país.
+                </p>
+                <p class="viz-source">
+                    <strong>Fontes:</strong> Mesmos ficheiros de inflação e salário mínimo utilizados nas visualizações anteriores.
+                </p>
+
+                <div id="country-comparison" class="comparison-widget">
+                    <div class="comparison-loading-fallback">A preparar a comparação interactiva…</div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -286,6 +302,10 @@
             </p>
         </div>
     </footer>
+
+    <button id="back-to-top" class="back-to-top" type="button" aria-label="Voltar ao topo">
+        <span aria-hidden="true">▲</span>
+    </button>
 
     <!-- JavaScript (ES6 Modules) -->
     <script type="module" src="src/main.js"></script>

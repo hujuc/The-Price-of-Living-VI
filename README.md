@@ -70,6 +70,7 @@ The visualizations are implemented using **D3.js**, following a **human-centred,
 1. **Overview of Inflation Over Time** – showing overall inflation and core inflation trends.
 2. **Price vs. Wage Comparison** – visualizing the gap between inflation and wage growth.
 3. **Income Distribution Impact** – highlighting how inflation affects income inequality and the poorest 40% of the population.
+4. **Comparação entre Países (Portugal vs. outro país)** – componente interativo com cartões, um gráfico de quadrantes (inflação vs. índice real) e um gráfico tipo dumbbell para comparar diretamente o salário real em euros, alinhando automaticamente ambos os países a um ano base comum.
 
 Each visualization supports **interactive exploration**, allowing users to filter categories, hover for details, and compare across time periods.
 
