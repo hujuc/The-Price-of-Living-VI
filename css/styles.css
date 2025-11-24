@@ -2118,6 +2118,39 @@ body {
     color: #1d4ed8;
     font-size: 0.85rem;
     font-weight: 600;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.radar-year-tags {
+    display: flex;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.radar-year-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #0f172a;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+}
+
+.radar-year-tag::before {
+    content: '';
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 999px;
+    background: var(--year-color, #2563eb);
 }
 
 .radar-tooltip {
@@ -2205,6 +2238,16 @@ body {
 
 .radar-marker.is-active {
     transform: scale(1.4);
+}
+
+.radar-series.is-dimmed .radar-line,
+.radar-series.is-dimmed .radar-fill {
+    opacity: 0.15;
+}
+
+.radar-point.is-dimmed {
+    opacity: 0.2;
+    pointer-events: none;
 }
 
 .radar-series.is-hovered .radar-line {

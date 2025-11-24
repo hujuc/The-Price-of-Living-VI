@@ -227,53 +227,6 @@ export function createBulletGraph(yearData, baseNominal, country = "Portugal", b
         .attr("fill", "#95a5a6")
         .text("Dados: RMMG (salário) + IPC Total (inflação)");
 
-    // Add legend
-    const legend = svg.append("g")
-        .attr("transform", `translate(${width + 20}, ${-40})`);
-
-    const legendItems = [
-        { label: "Salário Nominal", color: "#2c3e50", type: "rect" },
-        { label: "Salário Real", color: "#e74c3c", type: "line" },
-        { label: `Referência ${referenceYear}`, color: "#3498db", type: "dash" }
-    ];
-
-    legendItems.forEach((item, i) => {
-        const yPos = i * 25;
-
-        if (item.type === "rect") {
-            legend.append("rect")
-                .attr("x", 0)
-                .attr("y", yPos - 8)
-                .attr("width", 20)
-                .attr("height", 12)
-                .attr("fill", item.color)
-                .attr("opacity", 0.8);
-        } else if (item.type === "line") {
-            legend.append("line")
-                .attr("x1", 0)
-                .attr("x2", 20)
-                .attr("y1", yPos)
-                .attr("y2", yPos)
-                .attr("stroke", item.color)
-                .attr("stroke-width", 4);
-        } else if (item.type === "dash") {
-            legend.append("line")
-                .attr("x1", 0)
-                .attr("x2", 20)
-                .attr("y1", yPos)
-                .attr("y2", yPos)
-                .attr("stroke", item.color)
-                .attr("stroke-width", 2)
-                .attr("stroke-dasharray", "5,5");
-        }
-
-        legend.append("text")
-            .attr("x", 25)
-            .attr("y", yPos + 4)
-            .attr("font-size", "11px")
-            .text(item.label);
-    });
-
     // Calculate and display difference
     const difference = yearData.real - referenceNominal;
     const percentChange = referenceNominal ? ((yearData.real - referenceNominal) / referenceNominal * 100).toFixed(1) : null;
@@ -298,6 +251,53 @@ export function createBulletGraph(yearData, baseNominal, country = "Portugal", b
         diffText.attr("fill", "#7f8c8d")
             .text(`Mesmo poder de compra que ${referenceYear}`);
     }
+
+    // Add legend below difference text
+    const legend = svg.append("g")
+        .attr("transform", `translate(${width / 2 - 180}, ${yCenter + barHeight / 2 + 80})`);
+
+    const legendItems = [
+        { label: "Salário Nominal", color: "#2c3e50", type: "rect" },
+        { label: "Salário Real", color: "#e74c3c", type: "line" },
+        { label: `Referência ${referenceYear}`, color: "#3498db", type: "dash" }
+    ];
+
+    legendItems.forEach((item, i) => {
+        const xPos = i * 130;
+
+        if (item.type === "rect") {
+            legend.append("rect")
+                .attr("x", xPos)
+                .attr("y", -8)
+                .attr("width", 20)
+                .attr("height", 12)
+                .attr("fill", item.color)
+                .attr("opacity", 0.8);
+        } else if (item.type === "line") {
+            legend.append("line")
+                .attr("x1", xPos)
+                .attr("x2", xPos + 20)
+                .attr("y1", 0)
+                .attr("y2", 0)
+                .attr("stroke", item.color)
+                .attr("stroke-width", 4);
+        } else if (item.type === "dash") {
+            legend.append("line")
+                .attr("x1", xPos)
+                .attr("x2", xPos + 20)
+                .attr("y1", 0)
+                .attr("y2", 0)
+                .attr("stroke", item.color)
+                .attr("stroke-width", 2)
+                .attr("stroke-dasharray", "5,5");
+        }
+
+        legend.append("text")
+            .attr("x", xPos + 25)
+            .attr("y", 4)
+            .attr("font-size", "11px")
+            .text(item.label);
+    });
 
     const subtitlesContainer = container.append("div")
         .attr("class", "range-subtitles")
